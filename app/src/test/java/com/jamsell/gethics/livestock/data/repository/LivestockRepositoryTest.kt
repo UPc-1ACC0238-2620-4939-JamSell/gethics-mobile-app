@@ -129,7 +129,6 @@ class LivestockRepositoryTest {
 
     @Test
     fun `JSON real del backend se deserializa en AnimalResponse`() {
-        // Forma de AnimalResource (Jackson incluye los null)
         val json = """
             {"id":"9b7d4e21-0000-4000-8000-000000000002","farmId":null,"tag":"MX-00123","qrCode":"GTH-3F9A1C7B2E40",
              "name":null,"breed":"Holstein","sex":null,"birthDate":"2024-03-01","initialWeightKg":420.50,

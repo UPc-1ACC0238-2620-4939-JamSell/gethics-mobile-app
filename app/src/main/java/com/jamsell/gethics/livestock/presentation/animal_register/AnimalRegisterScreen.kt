@@ -29,7 +29,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -67,7 +66,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-// Figma: "Registrar Nueva Res" (390w light). Campos de 18dp de radio, boton circular de 56dp, como en Sign In.
 private val FieldShape = RoundedCornerShape(18.dp)
 private val PhotoShape = RoundedCornerShape(16.dp)
 private val CameraGreen = Color(0xFF2D6A3E)
@@ -139,7 +137,7 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
                         onValueChange = {},
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                            .menuAnchor(),
                         readOnly = true,
                         placeholder = { Text("Selecciona una raza") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -289,7 +287,7 @@ private fun PhotoPicker(photoUri: String?, onClick: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .background(Mint, CircleShape)
+                        .background(Mint, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = CameraGreen)
