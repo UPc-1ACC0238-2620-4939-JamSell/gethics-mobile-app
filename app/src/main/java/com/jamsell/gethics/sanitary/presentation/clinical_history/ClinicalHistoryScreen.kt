@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import com.jamsell.gethics.shared.ui.components.ScreenPlaceholder
 
 @Composable
-fun ClinicalHistoryScreen(viewModel: ClinicalHistoryViewModel, animalId: Long) {
+fun ClinicalHistoryScreen(viewModel: ClinicalHistoryViewModel, animalId: String) {
     // TODO: reemplazar ScreenPlaceholder por la UI real
     ScreenPlaceholder(
         title = "Historial clinico",

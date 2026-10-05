@@ -6,7 +6,12 @@ import com.jamsell.gethics.shared.ui.components.GethicsButton
 import com.jamsell.gethics.shared.ui.components.ScreenPlaceholder
 
 @Composable
-fun AnimalDetailScreen(viewModel: AnimalDetailViewModel, animalId: Long, onOpenClinicalHistory: (Long) -> Unit) {
+fun AnimalDetailScreen(
+    viewModel: AnimalDetailViewModel,
+    animalId: String,
+    onOpenClinicalHistory: (String) -> Unit,
+    onRegisterEvent: (String) -> Unit
+) {
     // TODO: reemplazar ScreenPlaceholder por la UI real
     ScreenPlaceholder(
         title = "Detalle del animal",
@@ -14,5 +19,6 @@ fun AnimalDetailScreen(viewModel: AnimalDetailViewModel, animalId: Long, onOpenC
         description = "Datos del animal + accesos a historial clinico y eventos sanitarios."
     ) {
         GethicsButton(text = "Ver historial clinico", onClick = { onOpenClinicalHistory(animalId) }, outlined = true)
+        GethicsButton(text = "Registrar evento sanitario", onClick = { onRegisterEvent(animalId) })
     }
 }

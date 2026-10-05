@@ -125,36 +125,40 @@ fun GethicsNavHost(
         }
         composable(
             route = Routes.ANIMAL_DETAIL,
-            arguments = listOf(navArgument("animalId") { type = NavType.LongType })
+            arguments = listOf(navArgument("animalId") { type = NavType.StringType })
         ) { entry ->
-            val animalId = entry.arguments?.getLong("animalId") ?: 0L
+            val animalId = entry.arguments?.getString("animalId").orEmpty()
             AnimalDetailScreen(
                 viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository) },
                 animalId = animalId,
-                onOpenClinicalHistory = { id -> navController.navigate(Routes.clinicalHistory(id)) }
+                onOpenClinicalHistory = { id -> navController.navigate(Routes.clinicalHistory(id)) },
+                onRegisterEvent = { id -> navController.navigate(Routes.registerEvent(id)) }
             )
         }
 
         // ---------------- sanitary ----------------
         composable(Routes.SANITARY_CALENDAR) {
             SanitaryCalendarScreen(
-                viewModel = gethicsViewModel { SanitaryCalendarViewModel(container.sanitaryRepository) },
-                onRegisterEvent = { navController.navigate(Routes.REGISTER_EVENT) }
+                viewModel = gethicsViewModel { SanitaryCalendarViewModel(container.sanitaryRepository) }
             )
         }
-        composable(Routes.REGISTER_EVENT) {
+        composable(
+            route = Routes.REGISTER_EVENT,
+            arguments = listOf(navArgument("animalId") { type = NavType.StringType })
+        ) { entry ->
             RegisterEventScreen(
                 viewModel = gethicsViewModel { RegisterEventViewModel(container.sanitaryRepository) },
+                animalId = entry.arguments?.getString("animalId").orEmpty(),
                 onSaved = { navController.popBackStack() }
             )
         }
         composable(
             route = Routes.CLINICAL_HISTORY,
-            arguments = listOf(navArgument("animalId") { type = NavType.LongType })
+            arguments = listOf(navArgument("animalId") { type = NavType.StringType })
         ) { entry ->
             ClinicalHistoryScreen(
                 viewModel = gethicsViewModel { ClinicalHistoryViewModel(container.sanitaryRepository) },
-                animalId = entry.arguments?.getLong("animalId") ?: 0L
+                animalId = entry.arguments?.getString("animalId").orEmpty()
             )
         }
 

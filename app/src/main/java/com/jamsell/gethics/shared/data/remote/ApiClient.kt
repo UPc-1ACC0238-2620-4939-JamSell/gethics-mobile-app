@@ -1,5 +1,6 @@
 package com.jamsell.gethics.shared.data.remote
 
+import com.google.gson.Gson
 import com.jamsell.gethics.shared.common.Constants
 import com.jamsell.gethics.shared.data.local.SessionStorage
 import okhttp3.Interceptor
@@ -29,4 +30,17 @@ class AuthInterceptor(private val sessionStorage: SessionStorage) : Interceptor 
         sessionStorage.getToken()?.let { builder.addHeader("Authorization", "Bearer $it") }
         return chain.proceed(builder.build())
     }
+}
+
+/** Formato de error del backend: { "message": "..." }. */
+private class ErrorResponse(val message: String?)
+
+/** Lee "message" del errorBody; si no se puede, devuelve un mensaje generico con el codigo HTTP. */
+fun retrofit2.Response<*>.errorMessage(): String {
+    val message = try {
+        Gson().fromJson(errorBody()?.string(), ErrorResponse::class.java)?.message
+    } catch (e: Exception) {
+        null
+    }
+    return message?.takeIf { it.isNotBlank() } ?: "No se pudo completar la solicitud (HTTP ${code()})"
 }
