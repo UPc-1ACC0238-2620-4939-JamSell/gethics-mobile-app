@@ -1,7 +1,6 @@
 package com.jamsell.gethics.iam.presentation.sign_in
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,16 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role as SemanticsRole
 import androidx.compose.ui.text.LinkAnnotation
@@ -45,17 +37,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jamsell.gethics.R
 import com.jamsell.gethics.iam.domain.model.Role
 import com.jamsell.gethics.shared.ui.components.GethicsButton
+import com.jamsell.gethics.shared.ui.components.GethicsLogoMark
 import com.jamsell.gethics.shared.ui.components.GethicsTextField
 import com.jamsell.gethics.shared.ui.theme.FigmaLineHeight
 import com.jamsell.gethics.shared.ui.theme.Navy
-import kotlin.math.roundToInt
 
 // Valores del Figma oficial: Login, frame 3:113 ("390w light"). Medidas logicas en dp, texto en sp.
 private val ScreenHorizontalPadding = 24.dp
@@ -173,14 +163,7 @@ private fun FieldIcon(@DrawableRes id: Int) {
 @Composable
 private fun BrandHeader() {
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
-            painter = logoMarkPainter(),
-            contentDescription = null, // decorativo: el titulo "Gethics" va justo debajo
-            modifier = Modifier
-                .size(104.dp)
-                .clip(RoundedCornerShape(24.dp)),
-            contentScale = ContentScale.FillBounds
-        )
+        GethicsLogoMark()
         Spacer(Modifier.height(13.dp))
         Text(
             text = "Gethics",
@@ -194,22 +177,6 @@ private fun BrandHeader() {
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
-        )
-    }
-}
-
-/**
- * El Figma usa gethics_logo.png recortado (imageTransform del nodo 41:1001): solo el toro, sin el texto.
- * Se recorta por proporcion para que funcione igual en cualquier densidad.
- */
-@Composable
-private fun logoMarkPainter(): BitmapPainter {
-    val bitmap = ImageBitmap.imageResource(R.drawable.gethics_logo)
-    return remember(bitmap) {
-        BitmapPainter(
-            image = bitmap,
-            srcOffset = IntOffset((bitmap.width * 0.24395251f).roundToInt(), (bitmap.height * 0.09729159f).roundToInt()),
-            srcSize = IntSize((bitmap.width * 0.56830138f).roundToInt(), (bitmap.height * 0.6171875f).roundToInt())
         )
     }
 }
