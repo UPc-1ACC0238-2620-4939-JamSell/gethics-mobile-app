@@ -45,6 +45,6 @@ object Routes {
         Role.GANADERO -> ANIMAL_LIST
         Role.VETERINARIO -> ASSIGNED_CLIENTS
     }
-
-    fun registerCare(id: String) {}
+    const val REGISTER_CARE = "register_care/{patientId}"
+    fun registerCare(patientId: String) = "register_care/$patientId"
 }

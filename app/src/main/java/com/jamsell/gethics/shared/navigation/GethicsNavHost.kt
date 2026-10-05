@@ -44,6 +44,8 @@ import com.jamsell.gethics.veterinary.presentation.assigned_clients.AssignedClie
 import com.jamsell.gethics.veterinary.presentation.assigned_clients.AssignedClientsViewModel
 import com.jamsell.gethics.veterinary.presentation.client_patients.ClientPatientsScreen
 import com.jamsell.gethics.veterinary.presentation.client_patients.ClientPatientsViewModel
+import com.jamsell.gethics.veterinary.presentation.register_care.RegisterCareScreen
+import com.jamsell.gethics.veterinary.presentation.register_care.RegisterCareViewModel
 
 /**
  * Grafo de navegacion. Cada Screen recibe su ViewModel + callbacks; solo este archivo conoce el NavController.
@@ -139,6 +141,16 @@ fun GethicsNavHost(
         composable(Routes.SANITARY_CALENDAR) {
             SanitaryCalendarScreen(
                 viewModel = gethicsViewModel { SanitaryCalendarViewModel(container.sanitaryRepository) }
+            )
+        }
+        composable(
+            route = Routes.REGISTER_CARE,
+            arguments = listOf(navArgument("patientId") { type = NavType.StringType })
+        ) { entry ->
+            RegisterCareScreen(
+                viewModel = gethicsViewModel { RegisterCareViewModel(container.veterinaryRepository) },
+                patientId = entry.arguments?.getString("patientId").orEmpty(),
+                onSaved = { navController.popBackStack() }
             )
         }
         composable(
