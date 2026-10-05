@@ -28,7 +28,7 @@ object Routes {
     // veterinary
     const val ASSIGNED_CLIENTS = "assigned_clients"
     const val CLIENT_PATIENTS = "client_patients/{clientId}"
-    fun clientPatients(clientId: Long) = "client_patients/$clientId"
+    fun clientPatients(clientId: String) = "client_patients/$clientId"
 
     // finance
     const val FINANCE_SUMMARY = "finance_summary"
@@ -45,4 +45,6 @@ object Routes {
         Role.GANADERO -> ANIMAL_LIST
         Role.VETERINARIO -> ASSIGNED_CLIENTS
     }
+
+    fun registerCare(id: String) {}
 }

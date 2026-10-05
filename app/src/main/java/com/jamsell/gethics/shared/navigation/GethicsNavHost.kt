@@ -170,12 +170,13 @@ fun GethicsNavHost(
         }
         composable(
             route = Routes.CLIENT_PATIENTS,
-            arguments = listOf(navArgument("clientId") { type = NavType.LongType })
+            arguments = listOf(navArgument("clientId") { type = NavType.StringType })
         ) { entry ->
             ClientPatientsScreen(
                 viewModel = gethicsViewModel { ClientPatientsViewModel(container.veterinaryRepository) },
-                clientId = entry.arguments?.getLong("clientId") ?: 0L,
-                onAnimalClick = { id -> navController.navigate(Routes.animalDetail(id)) }
+                clientId = entry.arguments?.getString("clientId").orEmpty(),
+                onAnimalClick = { id -> navController.navigate(Routes.animalDetail(id)) },
+                onRegisterCare = { id -> navController.navigate(Routes.registerCare(id)) }
             )
         }
 
