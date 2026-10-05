@@ -4,6 +4,7 @@ import com.jamsell.gethics.livestock.data.AnimalListResponse
 import com.jamsell.gethics.livestock.data.AnimalResponse
 import com.jamsell.gethics.livestock.data.LivestockService
 import com.jamsell.gethics.livestock.data.RegisterAnimalRequest
+import com.jamsell.gethics.livestock.data.UpdateAnimalRequest
 import com.jamsell.gethics.livestock.data.local.AnimalDao
 import com.jamsell.gethics.livestock.data.local.AnimalEntity
 import com.jamsell.gethics.livestock.data.repository.LivestockRepository
@@ -54,6 +55,8 @@ class AnimalListViewModelTest {
         }
 
         override suspend fun registerAnimal(request: RegisterAnimalRequest): Response<AnimalResponse> = error("no usado")
+        override suspend fun getAnimal(animalId: String): Response<AnimalResponse> = error("no usado")
+        override suspend fun updateAnimal(animalId: String, request: UpdateAnimalRequest): Response<AnimalResponse> = error("no usado")
     }
 
     private class FakeDao(vararg initial: AnimalEntity) : AnimalDao {

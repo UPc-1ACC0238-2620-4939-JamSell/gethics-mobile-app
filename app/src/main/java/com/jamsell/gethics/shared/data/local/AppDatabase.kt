@@ -15,7 +15,7 @@ import com.jamsell.gethics.livestock.data.local.AnimalEntity
         AnimalEntity::class
         // TODO: SanitaryEventEntity (sanitary), TransactionEntity (finance)...
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

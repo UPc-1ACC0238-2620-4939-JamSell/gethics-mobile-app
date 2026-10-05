@@ -1,6 +1,5 @@
 package com.jamsell.gethics.livestock.domain.model
 
-// TODO: sumar sex y farmId cuando el formulario y las granjas (US09/10) los usen
 data class Animal(
     val id: String,                 // UUID del backend
     val name: String,
@@ -10,5 +9,7 @@ data class Animal(
     val birthDate: String? = null,  // ISO yyyy-MM-dd
     val weightKg: Double? = null,
     val qrCode: String? = null,
-    val status: String? = null      // ACTIVE | SOLD | DECEASED | INACTIVE
+    val status: String? = null,     // ACTIVE | SOLD | DECEASED | INACTIVE
+    val sex: String? = null,        // MALE | FEMALE
+    val farmId: String? = null      // UUID de la granja; se cambia desde la asociacion animal-granja (US10)
 )

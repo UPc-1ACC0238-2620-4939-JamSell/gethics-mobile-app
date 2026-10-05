@@ -4,6 +4,8 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface LivestockService {
@@ -22,5 +24,14 @@ interface LivestockService {
         @Query("status") status: String?
     ): Response<AnimalListResponse>
 
-    // TODO: GET animal por id (ficha del animal, US07)
+    /** US07. Ficha del animal; 404 si no existe. */
+    @GET("api/v1/animals/{animalId}")
+    suspend fun getAnimal(@Path("animalId") animalId: String): Response<AnimalResponse>
+
+    /** US07. Guarda los cambios del animal y lo devuelve; 400 por datos invalidos y 404 si no existe. */
+    @PUT("api/v1/animals/{animalId}")
+    suspend fun updateAnimal(
+        @Path("animalId") animalId: String,
+        @Body request: UpdateAnimalRequest
+    ): Response<AnimalResponse>
 }

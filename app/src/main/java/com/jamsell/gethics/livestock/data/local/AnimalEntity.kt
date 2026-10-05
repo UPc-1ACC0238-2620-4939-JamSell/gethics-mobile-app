@@ -24,8 +24,12 @@ data class AnimalEntity(
     @ColumnInfo("qr_code")
     val qrCode: String? = null,
     @ColumnInfo("status")
-    val status: String? = null
+    val status: String? = null,
+    @ColumnInfo("sex")
+    val sex: String? = null,
+    @ColumnInfo("farm_id")
+    val farmId: String? = null
 )
 
-fun AnimalEntity.toAnimal() = Animal(id, name, tag, breed, photoUrl, birthDate, weightKg, qrCode, status)
-fun Animal.toEntity() = AnimalEntity(id, name, tag, breed, photoUrl, birthDate, weightKg, qrCode, status)
+fun AnimalEntity.toAnimal() = Animal(id, name, tag, breed, photoUrl, birthDate, weightKg, qrCode, status, sex, farmId)
+fun Animal.toEntity() = AnimalEntity(id, name, tag, breed, photoUrl, birthDate, weightKg, qrCode, status, sex, farmId)
