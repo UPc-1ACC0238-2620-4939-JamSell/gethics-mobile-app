@@ -2,6 +2,7 @@ package com.jamsell.gethics.iam.data.repository
 
 import com.jamsell.gethics.iam.data.AuthService
 import com.jamsell.gethics.iam.data.SignInRequest
+import com.jamsell.gethics.iam.data.SignUpRequest
 import com.jamsell.gethics.iam.domain.model.Role
 import com.jamsell.gethics.shared.common.Resource
 import com.jamsell.gethics.shared.data.local.SessionStorage
@@ -29,7 +30,16 @@ class AuthRepository(
             Resource.Error(CONNECTION_ERROR)
         }
 
-    // TODO: signUp (US01) / forgotPassword / resetPassword (US03)
+    /** Crea la cuenta. No guarda sesion: el backend no devuelve token y la pantalla vuelve al login. */
+    suspend fun signUp(name: String, email: String, password: String, role: String): Resource<Unit> =
+        try {
+            val response = service.signUp(SignUpRequest(name, email, password, role))
+            if (response.isSuccessful) Resource.Success(Unit) else Resource.Error(response.errorMessage())
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    // TODO: forgotPassword / resetPassword (US03)
 
     fun signOut() = sessionStorage.clear()
 }

@@ -22,7 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.jamsell.gethics.R
 
 /**
- * Campo outlined. leadingIcon y shape son opcionales (sin ellos se ve igual que antes).
+ * Campo outlined. leadingIcon, shape y helperText son opcionales (sin ellos se ve igual que antes).
+ * helperText es un texto informativo bajo el campo; errorMessage tiene prioridad y marca el campo como error.
  * isPassword oculta el texto y agrega el boton de ojo del Figma para mostrarlo/ocultarlo.
  */
 @Composable
@@ -35,7 +36,8 @@ fun GethicsTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     errorMessage: String? = null,
     leadingIcon: (@Composable () -> Unit)? = null,
-    shape: Shape = OutlinedTextFieldDefaults.shape
+    shape: Shape = OutlinedTextFieldDefaults.shape,
+    helperText: String? = null
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val hidden = isPassword && !passwordVisible
@@ -60,7 +62,7 @@ fun GethicsTextField(
         } else null,
         singleLine = true,
         isError = errorMessage != null,
-        supportingText = errorMessage?.let { { Text(it) } },
+        supportingText = (errorMessage ?: helperText)?.let { { Text(it) } },
         shape = shape,
         visualTransformation = if (hidden) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else keyboardType)

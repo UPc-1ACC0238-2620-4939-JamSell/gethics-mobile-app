@@ -10,5 +10,9 @@ interface AuthService {
     @POST("auth/login")
     suspend fun signIn(@Body request: SignInRequest): Response<AuthenticatedUserResponse>
 
-    // TODO: auth/register (US01), auth/forgot-password y auth/reset-password (US03)
+    /** US01. 201 con el usuario creado; 409 "El correo ya está en uso"; 400 "Datos inválidos". */
+    @POST("auth/register")
+    suspend fun signUp(@Body request: SignUpRequest): Response<UserResponse>
+
+    // TODO: auth/forgot-password y auth/reset-password (US03)
 }

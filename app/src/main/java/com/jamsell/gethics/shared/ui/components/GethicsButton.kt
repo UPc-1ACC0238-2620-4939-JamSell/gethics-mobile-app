@@ -1,5 +1,6 @@
 package com.jamsell.gethics.shared.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -18,8 +19,8 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Boton primario (relleno vino) o secundario (outlined).
- * height/shape/textStyle/elevation son opcionales: cada pantalla pasa los valores de su frame de Figma.
- * Sin ellos se ve igual que antes (radio shapes.small, texto labelLarge, elevacion por defecto).
+ * height/shape/textStyle/elevation/border son opcionales: cada pantalla pasa los valores de su frame de Figma.
+ * Sin ellos se ve igual que antes (radio shapes.small, texto labelLarge, elevacion y borde por defecto).
  */
 @Composable
 fun GethicsButton(
@@ -32,7 +33,8 @@ fun GethicsButton(
     height: Dp = Dp.Unspecified,
     shape: Shape = MaterialTheme.shapes.small,
     textStyle: TextStyle? = null,
-    elevation: Dp? = null
+    elevation: Dp? = null,
+    border: BorderStroke? = null
 ) {
     val sizedModifier = if (height != Dp.Unspecified) modifier.height(height) else modifier
     if (outlined) {
@@ -41,7 +43,8 @@ fun GethicsButton(
             modifier = sizedModifier,
             enabled = enabled && !isLoading,
             shape = shape,
-            elevation = elevation?.let { ButtonDefaults.buttonElevation(defaultElevation = it) }
+            elevation = elevation?.let { ButtonDefaults.buttonElevation(defaultElevation = it) },
+            border = border ?: ButtonDefaults.outlinedButtonBorder(enabled && !isLoading)
         ) {
             ButtonContent(text, isLoading, textStyle)
         }
@@ -52,7 +55,8 @@ fun GethicsButton(
             enabled = enabled && !isLoading,
             shape = shape,
             elevation = elevation?.let { ButtonDefaults.buttonElevation(defaultElevation = it) }
-                ?: ButtonDefaults.buttonElevation()
+                ?: ButtonDefaults.buttonElevation(),
+            border = border
         ) {
             ButtonContent(text, isLoading, textStyle)
         }
