@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Calendario del campo de fecha del Figma (12:196, nodo 12:219): 16x16, trazo 1.33333, #636B64.
+     Reconstruido con la geometria medida de sus 10 vectores (2 lineas, cuadro 12x12 en (2, 2.67), separador y 6 puntos);
+     sustituir por el SVG exportado cuando la API de Figma vuelva a estar disponible. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+    <path
+        android:pathData="M5.33333 1.33333V4M10.66667 1.33333V4"
+        android:strokeColor="#FF636B64"
+        android:strokeWidth="1.33333"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M3.33333 2.66667H12.66667A1.33333 1.33333 0 0 1 14 4V13.33333A1.33333 1.33333 0 0 1 12.66667 14.66667H3.33333A1.33333 1.33333 0 0 1 2 13.33333V4A1.33333 1.33333 0 0 1 3.33333 2.66667Z"
+        android:strokeColor="#FF636B64"
+        android:strokeWidth="1.33333"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M2 6.66667H14"
+        android:strokeColor="#FF636B64"
+        android:strokeWidth="1.33333"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M5.33333 9.33333H5.34M8 9.33333H8.00667M10.66667 9.33333H10.67333M5.33333 12H5.34M8 12H8.00667M10.66667 12H10.67333"
+        android:strokeColor="#FF636B64"
+        android:strokeWidth="1.33333"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

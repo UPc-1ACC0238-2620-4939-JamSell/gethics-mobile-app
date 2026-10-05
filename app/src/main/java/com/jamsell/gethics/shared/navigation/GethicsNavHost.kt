@@ -148,7 +148,8 @@ fun GethicsNavHost(
             RegisterEventScreen(
                 viewModel = gethicsViewModel { RegisterEventViewModel(container.sanitaryRepository) },
                 animalId = entry.arguments?.getString("animalId").orEmpty(),
-                onSaved = { navController.popBackStack() }
+                onSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         }
         composable(
