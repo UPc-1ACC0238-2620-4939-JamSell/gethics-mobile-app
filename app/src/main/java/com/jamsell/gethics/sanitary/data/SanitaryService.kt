@@ -22,4 +22,8 @@ interface SanitaryService {
         @Query("year") year: Int,
         @Query("month") month: Int
     ): Response<SanitaryCalendarResponse>
+
+    /** US14. Historial completo del animal; un UUID sin eventos (o inexistente) responde 200 con "Sin registros.". */
+    @GET("api/v1/animals/{animalId}/clinical-history")
+    suspend fun getClinicalHistory(@Path("animalId") animalId: String): Response<ClinicalHistoryResponse>
 }

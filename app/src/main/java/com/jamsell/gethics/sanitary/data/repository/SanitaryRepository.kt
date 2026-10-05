@@ -1,5 +1,6 @@
 package com.jamsell.gethics.sanitary.data.repository
 
+import com.jamsell.gethics.sanitary.data.ClinicalHistoryResponse
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryService
@@ -23,6 +24,15 @@ class SanitaryRepository(private val service: SanitaryService) {
     suspend fun getCalendar(period: YearMonth): Resource<SanitaryCalendarResponse> =
         try {
             val response = service.getCalendar(period.year, period.monthValue)
+            val body = response.body()
+            if (response.isSuccessful && body != null) Resource.Success(body) else Resource.Error(response.errorMessage())
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    suspend fun getClinicalHistory(animalId: String): Resource<ClinicalHistoryResponse> =
+        try {
+            val response = service.getClinicalHistory(animalId)
             val body = response.body()
             if (response.isSuccessful && body != null) Resource.Success(body) else Resource.Error(response.errorMessage())
         } catch (e: IOException) {

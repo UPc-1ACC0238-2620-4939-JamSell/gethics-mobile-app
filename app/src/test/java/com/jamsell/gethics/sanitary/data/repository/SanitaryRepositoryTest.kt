@@ -1,7 +1,10 @@
 package com.jamsell.gethics.sanitary.data.repository
 
 import com.google.gson.Gson
+import com.jamsell.gethics.sanitary.data.ClinicalHistoryEventDto
+import com.jamsell.gethics.sanitary.data.ClinicalHistoryResponse
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.SanitaryEventStatus
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
 import com.jamsell.gethics.sanitary.data.SanitaryService
@@ -24,11 +27,16 @@ class SanitaryRepositoryTest {
 
     private class FakeService(
         val register: () -> Response<Unit> = { error("no usado") },
-        val calendar: (Int, Int) -> Response<SanitaryCalendarResponse> = { _, _ -> error("no usado") }
+        val calendar: (Int, Int) -> Response<SanitaryCalendarResponse> = { _, _ -> error("no usado") },
+        val history: (String) -> Response<ClinicalHistoryResponse> = { error("no usado") }
     ) : SanitaryService {
         override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest) = register()
         override suspend fun getCalendar(year: Int, month: Int) = calendar(year, month)
+        override suspend fun getClinicalHistory(animalId: String) = history(animalId)
     }
+
+    private fun historyRepository(block: (String) -> Response<ClinicalHistoryResponse>) =
+        SanitaryRepository(FakeService(history = block))
 
     private fun repositoryReturning(block: () -> Response<Unit>) = SanitaryRepository(FakeService(register = block))
 
@@ -129,5 +137,78 @@ class SanitaryRepositoryTest {
         assertEquals("2026-10-05", calendar.events[0].scheduledDate)
         assertNull(calendar.events[1].description)
         assertNull(calendar.message)
+    }
+
+    // ---------------- US14 ----------------
+
+    private val historyEvent = ClinicalHistoryEventDto(
+        "e1", SanitaryEventType.VACCINATION, SanitaryEventStatus.COMPLETED, "2026-03-01T10:00:00", null, "Aftosa"
+    )
+
+    @Test
+    fun `historial 200 con eventos devuelve los eventos`() = runBlocking {
+        val body = ClinicalHistoryResponse("a1", listOf(historyEvent), null)
+        val result = historyRepository { Response.success(body) }.getClinicalHistory("a1")
+        assertEquals(listOf(historyEvent), result.data?.events)
+    }
+
+    @Test
+    fun `historial 200 vacio devuelve lista vacia y Sin registros`() = runBlocking {
+        val body = ClinicalHistoryResponse("a1", emptyList(), "Sin registros.")
+        val result = historyRepository { Response.success(body) }.getClinicalHistory("a1")
+        assertTrue(result.data!!.events.isEmpty())
+        assertEquals("Sin registros.", result.data!!.message)
+    }
+
+    @Test
+    fun `historial 400 devuelve el message del backend`() = runBlocking {
+        val result = historyRepository { error(400, """{"message":"Parametro invalido: animalId"}""") }
+            .getClinicalHistory("1")
+        assertTrue(result is Resource.Error)
+        assertEquals("Parametro invalido: animalId", result.message)
+    }
+
+    @Test
+    fun `historial sin conexion devuelve error de conexion`() = runBlocking {
+        val result = historyRepository { throw IOException() }.getClinicalHistory("a1")
+        assertEquals("No se pudo conectar con el servidor", result.message)
+    }
+
+    @Test
+    fun `historial envia el animalId intacto`() = runBlocking {
+        val animalId = "9b7d4e21-0000-4000-8000-000000000002"
+        var sent: String? = null
+        historyRepository {
+            sent = it
+            Response.success(ClinicalHistoryResponse(it, emptyList(), "Sin registros."))
+        }.getClinicalHistory(animalId)
+        assertEquals(animalId, sent)
+    }
+
+    @Test
+    fun `JSON real del historial se deserializa en los DTOs`() {
+        // Forma de ClinicalHistoryResource / ClinicalHistoryEventResource (comparacion estricta en el test del backend)
+        val json = """
+            {"animalId":"9b7d4e21-0000-4000-8000-000000000002",
+             "events":[
+               {"id":"11111111-1111-1111-1111-111111111111","type":"VACCINATION","status":"COMPLETED",
+                "occurredAt":"2025-12-01T08:30:00","scheduledDate":null,"description":"Aftosa"},
+               {"id":"22222222-2222-2222-2222-222222222222","type":"VACCINATION","status":"SCHEDULED",
+                "occurredAt":null,"scheduledDate":"2027-01-20","description":null}],
+             "message":null}
+        """.trimIndent()
+
+        val history = Gson().fromJson(json, ClinicalHistoryResponse::class.java)
+
+        assertEquals("9b7d4e21-0000-4000-8000-000000000002", history.animalId)
+        assertEquals(2, history.events.size)
+        assertEquals(SanitaryEventStatus.COMPLETED, history.events[0].status)
+        assertEquals("2025-12-01T08:30:00", history.events[0].occurredAt)
+        assertNull(history.events[0].scheduledDate)
+        assertEquals(SanitaryEventStatus.SCHEDULED, history.events[1].status)
+        assertNull(history.events[1].occurredAt)
+        assertEquals("2027-01-20", history.events[1].scheduledDate)
+        assertNull(history.events[1].description)
+        assertNull(history.message)
     }
 }

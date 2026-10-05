@@ -53,5 +53,7 @@ class RegisterEventViewModelTest {
         }
 
         override suspend fun getCalendar(year: Int, month: Int) = error("no usado")
+
+        override suspend fun getClinicalHistory(animalId: String) = error("no usado")
     }
 }
