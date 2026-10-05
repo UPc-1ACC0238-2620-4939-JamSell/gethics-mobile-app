@@ -51,5 +51,7 @@ class RegisterEventViewModelTest {
             calls++
             return Response.success(201, Unit)
         }
+
+        override suspend fun getCalendar(year: Int, month: Int) = error("no usado")
     }
 }
