@@ -2,7 +2,10 @@ package com.jamsell.gethics.iam.data
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface AuthService {
 
@@ -19,4 +22,13 @@ interface AuthService {
     @POST("api/v1/auth/reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<AuthResponse>
     // TODO: auth/forgot-password y auth/reset-password (US03)
+
+    @GET("api/v1/users/{id}")
+    suspend fun getUserProfile(@Path("id") userId: String): Response<UserProfileDto>
+
+    @PUT("api/v1/users/{id}")
+    suspend fun updateProfile(
+        @Path("id") userId: String,
+        @Body request: UpdateProfileRequest
+    ): Response<UserProfileDto>
 }
