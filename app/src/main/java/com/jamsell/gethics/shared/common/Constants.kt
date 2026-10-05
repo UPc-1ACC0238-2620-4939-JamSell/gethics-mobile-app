@@ -7,5 +7,6 @@ object Constants {
     const val BASE_URL = "https://gethics-backend-staging.onrender.com/"
     // Token de pago de la pasarela SANDBOX del backend (tok_declined / tok_insufficient_funds para probar errores)
     const val SANDBOX_PAYMENT_TOKEN = "tok_approved"
+    const val DEV_VET_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
     const val DEV_OWNER_ID = "11111111-1111-1111-1111-111111111111"
 }
