@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Exportado del Figma oficial (Login, frame 3:113): 20x20, trazo 1.66667, extremos redondeados. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+    <path
+        android:pathData="M18.3334 5.83337L10.8409 10.6059C10.5866 10.7536 10.2978 10.8313 10.0038 10.8313C9.70974 10.8313 9.42094 10.7536 9.16669 10.6059L1.66669 5.83337"
+        android:strokeColor="#FF43483F"
+        android:strokeWidth="1.66667"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M16.6667 3.33337H3.33335C2.41288 3.33337 1.66669 4.07957 1.66669 5.00004V15C1.66669 15.9205 2.41288 16.6667 3.33335 16.6667H16.6667C17.5872 16.6667 18.3334 15.9205 18.3334 15V5.00004C18.3334 4.07957 17.5872 3.33337 16.6667 3.33337Z"
+        android:strokeColor="#FF43483F"
+        android:strokeWidth="1.66667"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

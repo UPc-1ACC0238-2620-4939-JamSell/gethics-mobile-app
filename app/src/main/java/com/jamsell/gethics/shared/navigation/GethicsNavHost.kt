@@ -67,9 +67,8 @@ fun GethicsNavHost(
         composable(Routes.SIGN_IN) {
             SignInScreen(
                 viewModel = gethicsViewModel { SignInViewModel(container.authRepository) },
-                onSignedIn = {
-                    // TODO: navegar segun el rol real devuelto por el login
-                    navController.navigate(Routes.homeFor(Role.GANADERO)) {
+                onSignedIn = { role ->
+                    navController.navigate(Routes.homeFor(role)) {
                         popUpTo(Routes.SIGN_IN) { inclusive = true }
                     }
                 },

@@ -30,7 +30,7 @@ import com.jamsell.gethics.veterinary.data.repository.VeterinaryRepository
  */
 class AppContainer(context: Context) {
 
-    val sessionStorage = SessionStorage(context)
+    val sessionStorage = SessionStorage(context.getSharedPreferences("gethics_session", Context.MODE_PRIVATE))
 
     private val retrofit = ApiClient.create(sessionStorage)
 
