@@ -1,5 +1,6 @@
 package com.jamsell.gethics.iam.data.repository
 
+import com.jamsell.gethics.iam.data.AuthResponse
 import com.jamsell.gethics.iam.data.AuthService
 import com.jamsell.gethics.iam.data.SignInRequest
 import com.jamsell.gethics.iam.data.SignUpRequest
@@ -7,6 +8,7 @@ import com.jamsell.gethics.iam.domain.model.Role
 import com.jamsell.gethics.shared.common.Resource
 import com.jamsell.gethics.shared.data.local.SessionStorage
 import com.jamsell.gethics.shared.data.remote.errorMessage
+import kotlinx.coroutines.delay
 import java.io.IOException
 
 private const val CONNECTION_ERROR = "No se pudo conectar con el servidor"
@@ -42,4 +44,29 @@ class AuthRepository(
     // TODO: forgotPassword / resetPassword (US03)
 
     fun signOut() = sessionStorage.clear()
+
+    suspend fun forgotPassword(email: String): Resource<AuthResponse> {
+        return try {
+            // SIMULACIÓN MOCK (eliminar el delay y mock cuando iam esté listo)
+            delay(1000)
+            Resource.Success(AuthResponse("Se ha enviado un código a tu correo", true))
+
+            /* CÓDIGO REAL FINAL:
+            val response = service.forgotPassword(ForgotPasswordRequest(email))
+            if (response.isSuccessful && response.body() != null) Resource.Success(response.body()!!)
+            else Resource.Error("Error al procesar la solicitud")
+            */
+        } catch (e: Exception) {
+            Resource.Error("Error de conexión")
+        }
+    }
+
+    suspend fun resetPassword(email: String, code: String, newPassword: String): Resource<AuthResponse> {
+        return try {
+            delay(1000)
+            Resource.Success(AuthResponse("Contraseña restablecida con éxito", true))
+        } catch (e: Exception) {
+            Resource.Error("Error al restablecer contraseña")
+        }
+    }
 }
