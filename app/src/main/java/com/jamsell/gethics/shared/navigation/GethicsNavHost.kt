@@ -26,6 +26,8 @@ import com.jamsell.gethics.iam.presentation.sign_up.SignUpScreen
 import com.jamsell.gethics.iam.presentation.sign_up.SignUpViewModel
 import com.jamsell.gethics.livestock.presentation.animal_detail.AnimalDetailScreen
 import com.jamsell.gethics.livestock.presentation.animal_detail.AnimalDetailViewModel
+import com.jamsell.gethics.livestock.presentation.animal_edit.AnimalEditScreen
+import com.jamsell.gethics.livestock.presentation.animal_edit.AnimalEditViewModel
 import com.jamsell.gethics.livestock.presentation.animal_list.AnimalListScreen
 import com.jamsell.gethics.livestock.presentation.animal_list.AnimalListViewModel
 import com.jamsell.gethics.livestock.presentation.animal_register.AnimalRegisterScreen
@@ -131,11 +133,24 @@ fun GethicsNavHost(
         ) { entry ->
             val animalId = entry.arguments?.getString("animalId").orEmpty()
             AnimalDetailScreen(
-                viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository) },
+                viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository, animalId) },
                 animalId = animalId,
+                onBack = { navController.popBackStack() },
+                onEdit = { id -> navController.navigate(Routes.animalEdit(id)) },
                 onOpenClinicalHistory = { id -> navController.navigate(Routes.clinicalHistory(id)) },
                 onRegisterEvent = { id -> navController.navigate(Routes.registerEvent(id)) },
                 onScheduleVaccination = { id -> navController.navigate(Routes.scheduleVaccination(id)) }
+            )
+        }
+        composable(
+            route = Routes.ANIMAL_EDIT,
+            arguments = listOf(navArgument("animalId") { type = NavType.StringType })
+        ) { entry ->
+            val animalId = entry.arguments?.getString("animalId").orEmpty()
+            AnimalEditScreen(
+                viewModel = gethicsViewModel { AnimalEditViewModel(container.livestockRepository, animalId) },
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() }
             )
         }
 

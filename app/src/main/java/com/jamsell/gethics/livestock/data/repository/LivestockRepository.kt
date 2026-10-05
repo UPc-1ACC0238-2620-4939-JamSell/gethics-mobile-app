@@ -2,6 +2,7 @@ package com.jamsell.gethics.livestock.data.repository
 
 import com.jamsell.gethics.livestock.data.LivestockService
 import com.jamsell.gethics.livestock.data.RegisterAnimalRequest
+import com.jamsell.gethics.livestock.data.UpdateAnimalRequest
 import com.jamsell.gethics.livestock.data.local.AnimalDao
 import com.jamsell.gethics.livestock.data.local.toAnimal
 import com.jamsell.gethics.livestock.data.local.toEntity
@@ -92,4 +93,59 @@ class LivestockRepository(
             Resource.Error(CONNECTION_ERROR, dao.search(searchPattern(criterion), status.name).map { it.toAnimal() })
         }
     }
+
+    /**
+     * US07. Ficha del animal desde el backend, guardada en Room (conserva la foto local).
+     * Sin conexion: Resource.Error con el mensaje de conexion y, si el animal esta guardado, ese animal en data.
+     * Otro error del backend (404, ...): Resource.Error con su message y sin data.
+     */
+    suspend fun getAnimal(id: String): Resource<Animal> =
+        try {
+            val response = service.getAnimal(id)
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                val animal = body.toAnimal(dao.fetchById(id)?.photoUrl)
+                dao.insert(animal.toEntity())
+                Resource.Success(animal)
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR, dao.fetchById(id)?.toAnimal())
+        }
+
+    /**
+     * US07, escenario 1. Guarda los cambios y actualiza Room con la respuesta. El PUT reemplaza los campos editables, asi
+     * que se reenvian los que el formulario no pide: peso y granja actuales y la foto si es una URL del backend.
+     * Sin conexion devuelve error: aun no hay cola de sincronizacion para ediciones hechas offline.
+     */
+    suspend fun updateAnimal(
+        current: Animal,
+        name: String?,
+        breed: String,
+        sex: String?,
+        birthDate: String
+    ): Resource<Animal> =
+        try {
+            val request = UpdateAnimalRequest(
+                name = name,
+                breed = breed,
+                sex = sex,
+                birthDate = birthDate,
+                initialWeightKg = current.weightKg,
+                photoUrl = current.photoUrl?.takeIf { it.startsWith("http") },
+                farmId = current.farmId
+            )
+            val response = service.updateAnimal(current.id, request)
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                val animal = body.toAnimal(current.photoUrl)
+                dao.insert(animal.toEntity())
+                Resource.Success(animal)
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
 }
