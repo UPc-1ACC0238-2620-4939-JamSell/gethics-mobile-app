@@ -121,6 +121,7 @@ fun GethicsNavHost(
         composable(Routes.ANIMAL_REGISTER) {
             AnimalRegisterScreen(
                 viewModel = gethicsViewModel { AnimalRegisterViewModel(container.livestockRepository) },
+                onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() }
             )
         }
