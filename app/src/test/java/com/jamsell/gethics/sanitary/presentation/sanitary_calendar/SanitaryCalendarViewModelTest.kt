@@ -3,6 +3,8 @@ package com.jamsell.gethics.sanitary.presentation.sanitary_calendar
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
+import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryService
 import com.jamsell.gethics.sanitary.data.ScheduledEventDto
 import com.jamsell.gethics.sanitary.data.repository.SanitaryRepository
@@ -18,10 +20,15 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
+import com.jamsell.gethics.sanitary.presentation.register_event.FUTURE_DATE_ERROR
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import java.time.Clock
+import java.time.LocalDate
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
@@ -45,9 +52,18 @@ class SanitaryCalendarViewModelTest {
     /** Devuelve un evento por mes pedido (id = "año-mes"); delayMs permite simular respuestas lentas. */
     private class FakeService(
         val delayMs: (YearMonth) -> Long = { 0 },
+        val completeResponse: () -> Response<Unit> = { Response.success(Unit) },
         val events: (YearMonth) -> List<ScheduledEventDto>
     ) : SanitaryService {
         val requested = mutableListOf<YearMonth>()
+        val completed = mutableListOf<Triple<String, String, CompleteSanitaryEventRequest>>()
+
+        override suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest): Response<Unit> {
+            completed += Triple(animalId, eventId, request)
+            return completeResponse()
+        }
+
+        override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest) = error("no usado")
 
         override suspend fun getCalendar(year: Int, month: Int): Response<SanitaryCalendarResponse> {
             val period = YearMonth.of(year, month)
@@ -124,5 +140,63 @@ class SanitaryCalendarViewModelTest {
         assertEquals(listOf(october, YearMonth.of(2026, 11)), service.requested)
         assertEquals(YearMonth.of(2026, 11), viewModel.selectedMonth.value)
         assertEquals(listOf("2026-11"), viewModel.state.value.data?.map { it.id })
+    }
+
+    // ---------------- US13: registrar como aplicada ----------------
+
+    private val vaccination = ScheduledEventDto(
+        "evento-uuid", "animal-uuid", SanitaryEventType.VACCINATION, "2026-10-07", "Aftosa", "SCHEDULED"
+    )
+
+    @Test
+    fun `registrar vacuna como aplicada envia animalId eventId y fecha y recarga el mes`() = runTest(dispatcher) {
+        val service = FakeService { listOf(vaccination) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.completeVaccination(vaccination, LocalDate.of(2026, 10, 4))
+        assertTrue(viewModel.completing.value)
+        advanceUntilIdle()
+
+        assertEquals(1, service.completed.size)
+        val (animalId, eventId, request) = service.completed.single()
+        assertEquals("animal-uuid", animalId)
+        assertEquals("evento-uuid", eventId)
+        assertEquals("2026-10-04T00:00:00", request.occurredAt)
+        assertEquals(null, request.description)
+        assertEquals(listOf(YearMonth.of(2026, 10), YearMonth.of(2026, 10)), service.requested) // recarga
+        assertFalse(viewModel.completing.value)
+        assertEquals("", viewModel.actionMessage.value)
+    }
+
+    @Test
+    fun `fecha de aplicacion futura muestra el mensaje y no llama al backend`() = runTest(dispatcher) {
+        val service = FakeService { listOf(vaccination) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.completeVaccination(vaccination, LocalDate.of(2026, 10, 5))
+        advanceUntilIdle()
+
+        assertEquals(FUTURE_DATE_ERROR, viewModel.actionMessage.value)
+        assertTrue(service.completed.isEmpty())
+        assertEquals(listOf(YearMonth.of(2026, 10)), service.requested) // sin recarga
+    }
+
+    @Test
+    fun `error del backend al completar expone el message y no recarga`() = runTest(dispatcher) {
+        val message = "Solo un evento programado (SCHEDULED) puede registrarse como aplicado."
+        val service = FakeService(
+            completeResponse = { Response.error(409, """{"message":"$message"}""".toResponseBody("application/json".toMediaType())) }
+        ) { listOf(vaccination) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.completeVaccination(vaccination, LocalDate.of(2026, 10, 4))
+        advanceUntilIdle()
+
+        assertEquals(message, viewModel.actionMessage.value)
+        assertEquals(listOf(YearMonth.of(2026, 10)), service.requested)
+        assertFalse(viewModel.completing.value)
     }
 }

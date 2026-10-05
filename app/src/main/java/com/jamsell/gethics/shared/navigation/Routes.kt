@@ -22,6 +22,8 @@ object Routes {
     const val SANITARY_CALENDAR = "sanitary_calendar"
     const val REGISTER_EVENT = "register_event/{animalId}"
     fun registerEvent(animalId: String) = "register_event/$animalId"
+    const val SCHEDULE_VACCINATION = "schedule_vaccination/{animalId}"
+    fun scheduleVaccination(animalId: String) = "schedule_vaccination/$animalId"
     const val CLINICAL_HISTORY = "clinical_history/{animalId}"
     fun clinicalHistory(animalId: String) = "clinical_history/$animalId"
 

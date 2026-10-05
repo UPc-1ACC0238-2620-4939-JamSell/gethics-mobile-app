@@ -1,6 +1,8 @@
 package com.jamsell.gethics.sanitary.data.repository
 
 import com.jamsell.gethics.sanitary.data.ClinicalHistoryResponse
+import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryService
@@ -26,6 +28,24 @@ class SanitaryRepository(private val service: SanitaryService) {
             val response = service.getCalendar(period.year, period.monthValue)
             val body = response.body()
             if (response.isSuccessful && body != null) Resource.Success(body) else Resource.Error(response.errorMessage())
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    /** US13: programa un evento (la pantalla solo envia VACCINATION). */
+    suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest): Resource<Unit> =
+        try {
+            val response = service.scheduleEvent(animalId, request)
+            if (response.isSuccessful) Resource.Success(Unit) else Resource.Error(response.errorMessage())
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    /** US13: registra como aplicado un evento programado. */
+    suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest): Resource<Unit> =
+        try {
+            val response = service.completeEvent(animalId, eventId, request)
+            if (response.isSuccessful) Resource.Success(Unit) else Resource.Error(response.errorMessage())
         } catch (e: IOException) {
             Resource.Error(CONNECTION_ERROR)
         }
