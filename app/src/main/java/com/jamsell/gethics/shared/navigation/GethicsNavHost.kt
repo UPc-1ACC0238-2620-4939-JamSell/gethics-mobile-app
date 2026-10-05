@@ -34,6 +34,8 @@ import com.jamsell.gethics.sanitary.presentation.clinical_history.ClinicalHistor
 import com.jamsell.gethics.sanitary.presentation.clinical_history.ClinicalHistoryViewModel
 import com.jamsell.gethics.sanitary.presentation.register_event.RegisterEventScreen
 import com.jamsell.gethics.sanitary.presentation.register_event.RegisterEventViewModel
+import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVaccinationScreen
+import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVaccinationViewModel
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarScreen
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarViewModel
 import com.jamsell.gethics.shared.di.AppContainer
@@ -131,7 +133,8 @@ fun GethicsNavHost(
                 viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository) },
                 animalId = animalId,
                 onOpenClinicalHistory = { id -> navController.navigate(Routes.clinicalHistory(id)) },
-                onRegisterEvent = { id -> navController.navigate(Routes.registerEvent(id)) }
+                onRegisterEvent = { id -> navController.navigate(Routes.registerEvent(id)) },
+                onScheduleVaccination = { id -> navController.navigate(Routes.scheduleVaccination(id)) }
             )
         }
 
@@ -149,6 +152,17 @@ fun GethicsNavHost(
                 viewModel = gethicsViewModel { RegisterEventViewModel(container.sanitaryRepository) },
                 animalId = entry.arguments?.getString("animalId").orEmpty(),
                 onSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Routes.SCHEDULE_VACCINATION,
+            arguments = listOf(navArgument("animalId") { type = NavType.StringType })
+        ) { entry ->
+            ScheduleVaccinationScreen(
+                viewModel = gethicsViewModel { ScheduleVaccinationViewModel(container.sanitaryRepository) },
+                animalId = entry.arguments?.getString("animalId").orEmpty(),
+                onScheduled = { navController.popBackStack() },
                 onBack = { navController.popBackStack() }
             )
         }

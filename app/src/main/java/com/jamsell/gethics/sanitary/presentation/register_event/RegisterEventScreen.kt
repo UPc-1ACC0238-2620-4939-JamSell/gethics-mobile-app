@@ -74,7 +74,7 @@ private val FieldBorder = Color(0xFFD3DAD3)
 private val BarDivider = Color(0xFFDAE0DA)
 private val ButtonText = Color(0xFFFCFCFC)
 
-private val ScreenHorizontalPadding = 20.dp
+internal val FormHorizontalPadding = 20.dp
 private val FieldShape = RoundedCornerShape(14.dp)
 private val FieldHeight = 48.dp
 
@@ -97,50 +97,39 @@ fun RegisterEventScreen(viewModel: RegisterEventViewModel, animalId: String, onS
     }
 
     Column(modifier = Modifier.fillMaxSize().imePadding()) {
-        Header(onBack)
+        FormHeader(title = "Registrar evento sanitario", onBack = onBack)
 
         // Con scroll: pantallas chicas, teclado abierto o fuente escalada. La barra del boton queda siempre visible.
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = ScreenHorizontalPadding)
+                .padding(horizontal = FormHorizontalPadding)
                 .padding(top = 24.dp, bottom = 16.dp)
         ) {
             EventTypeField(selected = type, onSelect = { type = it })
 
             Spacer(Modifier.height(20.dp))
-            FieldLabel("Fecha del evento")
+            FormLabel("Fecha del evento")
             Spacer(Modifier.height(8.dp))
-            DateField(date = date, onClick = { showDatePicker = true })
+            FormDateField(date = date, label = "Fecha del evento", onClick = { showDatePicker = true })
 
             Spacer(Modifier.height(20.dp))
             Column(modifier = Modifier.semantics(mergeDescendants = true) {}) {
-                FieldLabel("Observaciones (opcional)")
+                FormLabel("Observaciones (opcional)")
                 Spacer(Modifier.height(8.dp))
-                DescriptionField(value = description, onValueChange = { description = it })
+                FormTextField(value = description, onValueChange = { description = it })
             }
 
             // No existe en el Figma: muestra la validacion local de fecha futura o el message del backend.
-            if (state.message.isNotEmpty()) {
-                Text(
-                    text = state.message,
-                    modifier = Modifier.padding(top = 16.dp),
-                    style = InputStyle.copy(fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.error)
-                )
-            }
+            if (state.message.isNotEmpty()) FormMessage(state.message)
         }
 
-        BottomBar {
-            GethicsButton(
+        FormBottomBar {
+            FormPrimaryButton(
                 text = "Registrar evento",
                 onClick = { viewModel.save(animalId, type, date, description) },
-                modifier = Modifier.fillMaxWidth(),
-                isLoading = state.isLoading,
-                height = 56.dp,
-                shape = FieldShape,
-                textStyle = ButtonTextStyle,
-                elevation = 1.dp // aproxima la sombra doble del Figma (Android no permite fijar el blur)
+                isLoading = state.isLoading
             )
         }
     }
@@ -170,9 +159,10 @@ fun RegisterEventScreen(viewModel: RegisterEventViewModel, animalId: String, onS
     }
 }
 
-/** Header 64dp + borde inferior 1dp: flecha de 20dp en x 26 y titulo en x 68 (IconButton de 48dp = area tactil). */
+/** Header 64dp + borde inferior 1dp: flecha de 20dp en x 26 y titulo en x 68 (IconButton de 48dp = area tactil).
+ *  internal: lo reutiliza "Programar vacuna" (US13) con el mismo lenguaje visual. */
 @Composable
-private fun Header(onBack: () -> Unit) {
+internal fun FormHeader(title: String, onBack: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
         Row(
             modifier = Modifier
@@ -191,14 +181,14 @@ private fun Header(onBack: () -> Unit) {
                 )
             }
             Spacer(Modifier.width(8.dp))
-            Text(text = "Registrar evento sanitario", modifier = Modifier.weight(1f), style = TitleStyle)
+            Text(text = title, modifier = Modifier.weight(1f), style = TitleStyle)
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(BarDivider))
     }
 }
 
 @Composable
-private fun FieldLabel(text: String) {
+internal fun FormLabel(text: String) {
     Text(text = text, style = LabelStyle)
 }
 
@@ -224,7 +214,7 @@ private fun EventTypeField(selected: SanitaryEventType, onSelect: (SanitaryEvent
     var expanded by remember { mutableStateOf(false) }
     var fieldWidthPx by remember { mutableIntStateOf(0) }
 
-    FieldLabel("Tipo de evento")
+    FormLabel("Tipo de evento")
     Spacer(Modifier.height(8.dp))
     Box {
         FieldBox(
@@ -260,12 +250,12 @@ private fun EventTypeField(selected: SanitaryEventType, onSelect: (SanitaryEvent
 
 /** Campo de fecha: abre el mismo DatePicker de siempre. Muestra la fecha tal cual (yyyy-MM-dd) con el icono de calendario. */
 @Composable
-private fun DateField(date: LocalDate, onClick: () -> Unit) {
+internal fun FormDateField(date: LocalDate, label: String, onClick: () -> Unit) {
     FieldBox(
         endPadding = 12.dp,
         modifier = Modifier
             .clickable(role = Role.Button, onClickLabel = "Elegir fecha", onClick = onClick)
-            .semantics { contentDescription = "Fecha del evento, $date" }
+            .semantics { contentDescription = "$label, $date" }
     ) {
         Text(text = date.toString(), modifier = Modifier.weight(1f), style = InputStyle)
         Icon(painterResource(R.drawable.ic_calendar), contentDescription = null, tint = TextSecondary)
@@ -273,7 +263,7 @@ private fun DateField(date: LocalDate, onClick: () -> Unit) {
 }
 
 @Composable
-private fun DescriptionField(value: String, onValueChange: (String) -> Unit) {
+internal fun FormTextField(value: String, onValueChange: (String) -> Unit) {
     FieldBox {
         BasicTextField(
             value = value,
@@ -288,11 +278,36 @@ private fun DescriptionField(value: String, onValueChange: (String) -> Unit) {
 
 /** Barra inferior fija del formulario: borde superior 1dp, 16dp sobre y bajo el boton, margenes de 20dp. */
 @Composable
-private fun BottomBar(content: @Composable () -> Unit) {
+internal fun FormBottomBar(content: @Composable () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(BarDivider))
-        Box(modifier = Modifier.padding(start = ScreenHorizontalPadding, end = ScreenHorizontalPadding, top = 16.dp, bottom = 16.dp)) {
+        Box(modifier = Modifier.padding(start = FormHorizontalPadding, end = FormHorizontalPadding, top = 16.dp, bottom = 16.dp)) {
             content()
         }
     }
+}
+
+/** Mensaje de validacion local o message del backend, bajo los campos (no existe en el Figma). */
+@Composable
+internal fun FormMessage(text: String) {
+    Text(
+        text = text,
+        modifier = Modifier.padding(top = 16.dp),
+        style = InputStyle.copy(fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.error)
+    )
+}
+
+/** Boton inferior del formulario de 12:196: 56dp, radio 14, texto 16 SemiBold #FCFCFC, elevacion ~1dp. */
+@Composable
+internal fun FormPrimaryButton(text: String, onClick: () -> Unit, isLoading: Boolean) {
+    GethicsButton(
+        text = text,
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        isLoading = isLoading,
+        height = 56.dp,
+        shape = FieldShape,
+        textStyle = ButtonTextStyle,
+        elevation = 1.dp // aproxima la sombra doble del Figma (Android no permite fijar el blur)
+    )
 }

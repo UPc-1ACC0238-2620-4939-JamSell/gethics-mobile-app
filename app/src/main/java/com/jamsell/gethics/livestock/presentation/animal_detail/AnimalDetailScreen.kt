@@ -10,7 +10,8 @@ fun AnimalDetailScreen(
     viewModel: AnimalDetailViewModel,
     animalId: String,
     onOpenClinicalHistory: (String) -> Unit,
-    onRegisterEvent: (String) -> Unit
+    onRegisterEvent: (String) -> Unit,
+    onScheduleVaccination: (String) -> Unit
 ) {
     // TODO: reemplazar ScreenPlaceholder por la UI real
     ScreenPlaceholder(
@@ -20,5 +21,6 @@ fun AnimalDetailScreen(
     ) {
         GethicsButton(text = "Ver historial clinico", onClick = { onOpenClinicalHistory(animalId) }, outlined = true)
         GethicsButton(text = "Registrar evento sanitario", onClick = { onRegisterEvent(animalId) })
+        GethicsButton(text = "Programar vacuna", onClick = { onScheduleVaccination(animalId) }, outlined = true)
     }
 }

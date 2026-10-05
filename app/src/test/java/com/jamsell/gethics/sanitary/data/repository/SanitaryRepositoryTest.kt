@@ -7,6 +7,8 @@ import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryEventStatus
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
+import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryService
 import com.jamsell.gethics.sanitary.data.ScheduledEventDto
 import com.jamsell.gethics.shared.common.Resource
@@ -28,11 +30,16 @@ class SanitaryRepositoryTest {
     private class FakeService(
         val register: () -> Response<Unit> = { error("no usado") },
         val calendar: (Int, Int) -> Response<SanitaryCalendarResponse> = { _, _ -> error("no usado") },
-        val history: (String) -> Response<ClinicalHistoryResponse> = { error("no usado") }
+        val history: (String) -> Response<ClinicalHistoryResponse> = { error("no usado") },
+        val schedule: (String, ScheduleSanitaryEventRequest) -> Response<Unit> = { _, _ -> error("no usado") },
+        val complete: (String, String, CompleteSanitaryEventRequest) -> Response<Unit> = { _, _, _ -> error("no usado") }
     ) : SanitaryService {
         override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest) = register()
         override suspend fun getCalendar(year: Int, month: Int) = calendar(year, month)
         override suspend fun getClinicalHistory(animalId: String) = history(animalId)
+        override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest) = schedule(animalId, request)
+        override suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest) =
+            complete(animalId, eventId, request)
     }
 
     private fun historyRepository(block: (String) -> Response<ClinicalHistoryResponse>) =
@@ -210,5 +217,49 @@ class SanitaryRepositoryTest {
         assertEquals("2027-01-20", history.events[1].scheduledDate)
         assertNull(history.events[1].description)
         assertNull(history.message)
+    }
+
+    // ---------------- US13 ----------------
+
+    private val scheduleRequest = ScheduleSanitaryEventRequest(SanitaryEventType.VACCINATION, "2026-10-07", "Aftosa")
+
+    @Test
+    fun `programar vacuna envia animalId y request y devuelve Success`() = runBlocking {
+        var sent: Pair<String, ScheduleSanitaryEventRequest>? = null
+        val result = SanitaryRepository(FakeService(schedule = { id, r -> sent = id to r; Response.success(201, Unit) }))
+            .scheduleEvent("animal-uuid", scheduleRequest)
+        assertTrue(result is Resource.Success)
+        assertEquals("animal-uuid" to scheduleRequest, sent)
+    }
+
+    @Test
+    fun `programar vacuna 400 devuelve el message del backend`() = runBlocking {
+        val body = """{"message":"La fecha programada no puede ser anterior a hoy."}"""
+        val result = SanitaryRepository(FakeService(schedule = { _, _ -> error(400, body) })).scheduleEvent("animal-uuid", scheduleRequest)
+        assertEquals("La fecha programada no puede ser anterior a hoy.", result.message)
+    }
+
+    @Test
+    fun `programar vacuna sin conexion devuelve error de conexion`() = runBlocking {
+        val result = SanitaryRepository(FakeService(schedule = { _, _ -> throw IOException() })).scheduleEvent("animal-uuid", scheduleRequest)
+        assertEquals(CONNECTION_ERROR, result.message)
+    }
+
+    @Test
+    fun `completar vacuna envia animalId eventId y body`() = runBlocking {
+        val request = CompleteSanitaryEventRequest("2026-10-04T00:00:00", null)
+        var sent: Triple<String, String, CompleteSanitaryEventRequest>? = null
+        val result = SanitaryRepository(FakeService(complete = { a, e, r -> sent = Triple(a, e, r); Response.success(200, Unit) }))
+            .completeEvent("animal-uuid", "evento-uuid", request)
+        assertTrue(result is Resource.Success)
+        assertEquals(Triple("animal-uuid", "evento-uuid", request), sent)
+    }
+
+    @Test
+    fun `completar vacuna 409 devuelve el message del backend`() = runBlocking {
+        val body = """{"message":"Solo un evento programado (SCHEDULED) puede registrarse como aplicado."}"""
+        val result = SanitaryRepository(FakeService(complete = { _, _, _ -> error(409, body) }))
+            .completeEvent("animal-uuid", "evento-uuid", CompleteSanitaryEventRequest("2026-10-04T00:00:00", null))
+        assertEquals("Solo un evento programado (SCHEDULED) puede registrarse como aplicado.", result.message)
     }
 }

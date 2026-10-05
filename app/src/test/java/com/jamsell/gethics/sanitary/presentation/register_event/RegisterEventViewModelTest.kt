@@ -2,6 +2,8 @@ package com.jamsell.gethics.sanitary.presentation.register_event
 
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
+import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryService
 import com.jamsell.gethics.sanitary.data.repository.SanitaryRepository
 import org.junit.Assert.assertEquals
@@ -55,5 +57,7 @@ class RegisterEventViewModelTest {
         override suspend fun getCalendar(year: Int, month: Int) = error("no usado")
 
         override suspend fun getClinicalHistory(animalId: String) = error("no usado")
+        override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest) = error("no usado")
+        override suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest) = error("no usado")
     }
 }

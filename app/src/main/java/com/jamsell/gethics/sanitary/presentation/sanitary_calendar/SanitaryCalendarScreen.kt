@@ -2,6 +2,26 @@ package com.jamsell.gethics.sanitary.presentation.sanitary_calendar
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import com.jamsell.gethics.sanitary.data.SanitaryEventType
+import java.time.Instant
+import java.time.ZoneOffset
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +85,7 @@ private val DayNumberStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fon
 private val WeekdayStyle = TextStyle(fontSize = 10.sp, lineHeight = 15.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = TextSecondary)
 private val EventTitleStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = TextPrimary)
 private val EventSubtitleStyle = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Normal, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = TextSecondary)
+private val ActionMessageStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Normal, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = Color(0xFFB3261E))
 private val EmptyStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Normal, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = TextSecondary)
 
 private val SPANISH = Locale.forLanguageTag("es")
@@ -73,10 +94,15 @@ private val SPOKEN_DAY_FORMAT = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", 
 
 private fun String.capitalized() = replaceFirstChar { it.titlecase(SPANISH) }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SanitaryCalendarScreen(viewModel: SanitaryCalendarViewModel) {
     val state = viewModel.state.value
     val events = state.data
+    val completing = viewModel.completing.value
+    val actionMessage = viewModel.actionMessage.value
+    // US13: vacunacion cuya fecha de aplicacion se esta eligiendo (null = dialogo cerrado)
+    var eventToComplete by remember { mutableStateOf<ScheduledEventDto?>(null) }
 
     Column(
         modifier = Modifier
@@ -95,6 +121,10 @@ fun SanitaryCalendarScreen(viewModel: SanitaryCalendarViewModel) {
         )
 
         Spacer(Modifier.height(16.dp))
+        // US13: validacion local o message del backend al registrar una vacuna como aplicada
+        if (actionMessage.isNotEmpty()) {
+            Text(text = actionMessage, modifier = Modifier.padding(bottom = 12.dp), style = ActionMessageStyle)
+        }
         when {
             state.isLoading -> LoadingBox()
             events == null -> ErrorMessage(message = state.message, onRetry = viewModel::load)
@@ -103,9 +133,28 @@ fun SanitaryCalendarScreen(viewModel: SanitaryCalendarViewModel) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(events, key = { it.id }) { ScheduledEventCard(it) }
+                items(events, key = { it.id }) { event ->
+                    ScheduledEventCard(
+                        event = event,
+                        // Solo vacunaciones programadas: es el flujo que cubre el backend de US13
+                        onComplete = if (event.type == SanitaryEventType.VACCINATION && event.status == "SCHEDULED") {
+                            { eventToComplete = event }
+                        } else null,
+                        completing = completing
+                    )
+                }
             }
         }
+    }
+
+    eventToComplete?.let { event ->
+        AppliedOnDialog(
+            onDismiss = { eventToComplete = null },
+            onConfirm = { appliedOn ->
+                eventToComplete = null
+                viewModel.completeVaccination(event, appliedOn)
+            }
+        )
     }
 }
 
@@ -147,16 +196,14 @@ private fun MonthButton(rotation: Float, description: String, onClick: () -> Uni
  * scheduledDate: el backend no entrega hora), titulo = tipo y subtitulo = descripcion si existe. Sin animalId.
  */
 @Composable
-private fun ScheduledEventCard(event: ScheduledEventDto) {
+private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit)?, completing: Boolean) {
     val date = LocalDate.parse(event.scheduledDate)
     val typeLabel = event.type?.label
     val description = event.description?.takeIf { it.isNotBlank() }
     val spoken = listOfNotNull(date.format(SPOKEN_DAY_FORMAT), typeLabel, description).joinToString(", ")
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clearAndSetSemantics { contentDescription = spoken },
+        modifier = Modifier.fillMaxWidth(),
         shape = CardShape,
         color = Color.White,
         border = BorderStroke(1.dp, CardBorder),
@@ -166,16 +213,75 @@ private fun ScheduledEventCard(event: ScheduledEventDto) {
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.width(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = date.dayOfMonth.toString(), style = DayNumberStyle)
-                Text(text = weekdayAbbreviation(date), style = WeekdayStyle)
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clearAndSetSemantics { contentDescription = spoken },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.width(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = date.dayOfMonth.toString(), style = DayNumberStyle)
+                    Text(text = weekdayAbbreviation(date), style = WeekdayStyle)
+                }
+                Spacer(Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    typeLabel?.let { Text(text = it, style = EventTitleStyle) }
+                    description?.let { Text(text = it, modifier = Modifier.padding(top = 2.dp), style = EventSubtitleStyle) }
+                }
             }
-            Spacer(Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                typeLabel?.let { Text(text = it, style = EventTitleStyle) }
-                description?.let { Text(text = it, modifier = Modifier.padding(top = 2.dp), style = EventSubtitleStyle) }
-            }
+            onComplete?.let { CompleteControl(enabled = !completing, onClick = it) }
         }
+    }
+}
+
+/**
+ * US13: control circular del Figma ("Checkbox - Mark ... as completed", nodo 13:301): 28dp, blanco, borde 2dp #66736A al 40%.
+ * Abre la eleccion de la fecha de aplicacion; area tactil de 48dp.
+ */
+@Composable
+private fun CompleteControl(enabled: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(Color.White)
+            .border(2.dp, TextSecondary.copy(alpha = 0.4f), CircleShape)
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = "Registrar vacuna como aplicada", onClick = onClick)
+            .semantics { contentDescription = "Registrar vacuna como aplicada" }
+    )
+}
+
+/**
+ * US13: fecha de aplicacion (hoy por defecto). Solo hoy o fechas pasadas: el backend rechaza una aplicacion futura.
+ * El DatePicker trabaja en milisegundos UTC: se convierte con UTC para no correr la fecha un dia.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppliedOnDialog(onDismiss: () -> Unit, onConfirm: (LocalDate) -> Unit) {
+    val today = LocalDate.now()
+    val pickerState = rememberDatePickerState(
+        initialSelectedDateMillis = today.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) =
+                !Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate().isAfter(today)
+
+            override fun isSelectableYear(year: Int) = year <= today.year
+        }
+    )
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                pickerState.selectedDateMillis?.let { onConfirm(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) }
+            }) { Text("Registrar") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+    ) {
+        DatePicker(
+            state = pickerState,
+            title = { Text(text = "Fecha de aplicación", modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) }
+        )
     }
 }
 
