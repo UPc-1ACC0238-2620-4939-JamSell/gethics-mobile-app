@@ -1,6 +1,7 @@
 package com.jamsell.gethics.livestock.data.repository
 
 import com.google.gson.Gson
+import com.jamsell.gethics.livestock.data.AnimalListResponse
 import com.jamsell.gethics.livestock.data.AnimalResponse
 import com.jamsell.gethics.livestock.data.LivestockService
 import com.jamsell.gethics.livestock.data.RegisterAnimalRequest
@@ -39,6 +40,7 @@ class LivestockRepositoryTest {
             sent = request
             return register(request)
         }
+        override suspend fun getAnimals(search: String?, status: String?): Response<AnimalListResponse> = error("no usado")
     }
 
     private class FakeDao : AnimalDao {
@@ -47,6 +49,8 @@ class LivestockRepositoryTest {
         override suspend fun insertAll(animals: List<AnimalEntity>) { saved += animals }
         override suspend fun fetchAll() = saved.toList()
         override suspend fun fetchById(id: String) = saved.firstOrNull { it.id == id }
+        override suspend fun search(pattern: String, status: String) = emptyList<AnimalEntity>()
+        override suspend fun deleteByStatus(status: String) { saved.removeAll { it.status == status } }
     }
 
     private fun <T> error(code: Int, body: String): Response<T> =

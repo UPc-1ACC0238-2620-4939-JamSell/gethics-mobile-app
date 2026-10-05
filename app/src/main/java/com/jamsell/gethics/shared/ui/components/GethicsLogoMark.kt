@@ -8,9 +8,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -20,15 +22,20 @@ import kotlin.math.roundToInt
 /**
  * Logo del Figma (Login 41:1001 y Crear Cuenta 41:996): gethics_logo.png recortado por su imageTransform
  * (solo el toro, sin el texto), 104dp con radio 24. Decorativo: siempre va junto al nombre o titulo de la pantalla.
+ * size y shape son opcionales: el inventario lo usa como avatar circular de la tarjeta del animal.
  */
 @Composable
-fun GethicsLogoMark(modifier: Modifier = Modifier) {
+fun GethicsLogoMark(
+    modifier: Modifier = Modifier,
+    size: Dp = 104.dp,
+    shape: Shape = RoundedCornerShape(24.dp)
+) {
     Image(
         painter = logoMarkPainter(),
         contentDescription = null,
         modifier = modifier
-            .size(104.dp)
-            .clip(RoundedCornerShape(24.dp)),
+            .size(size)
+            .clip(shape),
         contentScale = ContentScale.FillBounds
     )
 }

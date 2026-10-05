@@ -1,5 +1,6 @@
 package com.jamsell.gethics.livestock.presentation.animal_register
 
+import com.jamsell.gethics.livestock.data.AnimalListResponse
 import com.jamsell.gethics.livestock.data.AnimalResponse
 import com.jamsell.gethics.livestock.data.LivestockService
 import com.jamsell.gethics.livestock.data.RegisterAnimalRequest
@@ -24,6 +25,8 @@ class AnimalRegisterViewModelTest {
             calls++
             error("no usado")
         }
+
+        override suspend fun getAnimals(search: String?, status: String?): Response<AnimalListResponse> = error("no usado")
     }
 
     private object NoopDao : AnimalDao {
@@ -31,6 +34,8 @@ class AnimalRegisterViewModelTest {
         override suspend fun insertAll(animals: List<AnimalEntity>) = Unit
         override suspend fun fetchAll() = emptyList<AnimalEntity>()
         override suspend fun fetchById(id: String): AnimalEntity? = null
+        override suspend fun search(pattern: String, status: String) = emptyList<AnimalEntity>()
+        override suspend fun deleteByStatus(status: String) = Unit
     }
 
     @Test
