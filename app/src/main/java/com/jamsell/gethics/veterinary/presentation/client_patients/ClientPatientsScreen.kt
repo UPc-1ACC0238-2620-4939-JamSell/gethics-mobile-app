@@ -6,13 +6,13 @@ import com.jamsell.gethics.shared.ui.components.GethicsButton
 import com.jamsell.gethics.shared.ui.components.ScreenPlaceholder
 
 @Composable
-fun ClientPatientsScreen(viewModel: ClientPatientsViewModel, clientId: Long, onAnimalClick: (Long) -> Unit) {
+fun ClientPatientsScreen(viewModel: ClientPatientsViewModel, clientId: Long, onAnimalClick: (String) -> Unit) {
     // TODO: reemplazar ScreenPlaceholder por la UI real
     ScreenPlaceholder(
         title = "Pacientes del cliente",
         userStory = "US18",
         description = "Animales (pacientes) de un cliente asignado."
     ) {
-        GethicsButton(text = "Abrir animal de prueba (id 1)", onClick = { onAnimalClick(1L) }, outlined = true)
+        GethicsButton(text = "Abrir animal de prueba (id 1)", onClick = { onAnimalClick("1") }, outlined = true)
     }
 }
