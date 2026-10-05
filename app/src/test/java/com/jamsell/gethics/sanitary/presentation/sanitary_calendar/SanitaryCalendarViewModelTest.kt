@@ -57,6 +57,8 @@ class SanitaryCalendarViewModelTest {
         }
 
         override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest) = error("no usado")
+
+        override suspend fun getClinicalHistory(animalId: String) = error("no usado")
     }
 
     @Test

@@ -156,9 +156,9 @@ fun GethicsNavHost(
             route = Routes.CLINICAL_HISTORY,
             arguments = listOf(navArgument("animalId") { type = NavType.StringType })
         ) { entry ->
+            val animalId = entry.arguments?.getString("animalId").orEmpty()
             ClinicalHistoryScreen(
-                viewModel = gethicsViewModel { ClinicalHistoryViewModel(container.sanitaryRepository) },
-                animalId = entry.arguments?.getString("animalId").orEmpty()
+                viewModel = gethicsViewModel { ClinicalHistoryViewModel(container.sanitaryRepository, animalId) }
             )
         }
 
