@@ -35,7 +35,9 @@ class AppContainer(context: Context) {
     private val retrofit = ApiClient.create(sessionStorage)
 
     private val database by lazy {
-        Room.databaseBuilder(context, AppDatabase::class.java, "db-gethics").build()
+        Room.databaseBuilder(context, AppDatabase::class.java, "db-gethics")
+            .fallbackToDestructiveMigration(true) // solo es cache offline: al cambiar el esquema se recrea
+            .build()
     }
 
     // iam

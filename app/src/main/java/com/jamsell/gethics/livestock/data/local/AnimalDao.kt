@@ -8,11 +8,14 @@ import androidx.room.Query
 @Dao
 interface AnimalDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(animal: AnimalEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(animals: List<AnimalEntity>)
 
     @Query("select * from animals order by name")
     suspend fun fetchAll(): List<AnimalEntity>
 
     @Query("select * from animals where id = :id")
-    suspend fun fetchById(id: Long): AnimalEntity?
+    suspend fun fetchById(id: String): AnimalEntity?
 }
