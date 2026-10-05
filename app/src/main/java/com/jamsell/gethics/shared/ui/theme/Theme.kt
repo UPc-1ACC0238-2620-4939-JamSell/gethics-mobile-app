@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 
 private val LightColorScheme = lightColorScheme(
     primary = Wine,
-    onPrimary = White,
+    onPrimary = OffWhite,
     primaryContainer = Beige,
     onPrimaryContainer = Wine,
     secondary = Navy,
@@ -17,7 +17,9 @@ private val LightColorScheme = lightColorScheme(
     background = White,
     onBackground = Ink,
     surface = White,
-    onSurface = Ink
+    onSurface = Ink,
+    onSurfaceVariant = InkVariant,
+    outline = OutlineGray
 )
 
 private val DarkColorScheme = darkColorScheme(

@@ -1,14 +1,13 @@
 package com.jamsell.gethics.shared.data.local
 
-import android.content.Context
+import android.content.SharedPreferences
 
 /**
  * Guarda el token JWT y el rol del usuario logueado.
  * Lo lee AuthInterceptor (para el header Authorization) y la navegacion (para elegir tabs segun rol).
+ * Recibe las SharedPreferences por constructor para poder testearlo sin Context.
  */
-class SessionStorage(context: Context) {
-
-    private val prefs = context.getSharedPreferences("gethics_session", Context.MODE_PRIVATE)
+class SessionStorage(private val prefs: SharedPreferences) {
 
     fun saveSession(token: String, userId: Long, role: String) {
         prefs.edit()
