@@ -158,7 +158,8 @@ fun GethicsNavHost(
         ) { entry ->
             val animalId = entry.arguments?.getString("animalId").orEmpty()
             ClinicalHistoryScreen(
-                viewModel = gethicsViewModel { ClinicalHistoryViewModel(container.sanitaryRepository, animalId) }
+                viewModel = gethicsViewModel { ClinicalHistoryViewModel(container.sanitaryRepository, animalId) },
+                onBack = { navController.popBackStack() }
             )
         }
 
