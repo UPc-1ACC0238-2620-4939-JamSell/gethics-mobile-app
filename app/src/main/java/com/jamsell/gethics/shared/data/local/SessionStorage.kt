@@ -1,6 +1,7 @@
 package com.jamsell.gethics.shared.data.local
 
 import android.content.SharedPreferences
+import com.jamsell.gethics.shared.common.Constants
 
 /**
  * Guarda el token JWT y el rol del usuario logueado.
@@ -17,6 +18,10 @@ class SessionStorage(private val prefs: SharedPreferences) {
             .apply()
     }
 
+    /** UUID del usuario en el backend (ownerId). Si el login aun no lo guardo, se usa Constants.DEFAULT_OWNER_ID. */
+    fun saveOwnerId(ownerId: String) = prefs.edit().putString(KEY_OWNER_ID, ownerId).apply()
+    fun getOwnerId(): String = prefs.getString(KEY_OWNER_ID, null) ?: Constants.DEFAULT_OWNER_ID
+
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
     fun getUserId(): Long = prefs.getLong(KEY_USER_ID, -1L)
     fun getRole(): String? = prefs.getString(KEY_ROLE, null)
@@ -28,5 +33,6 @@ class SessionStorage(private val prefs: SharedPreferences) {
         const val KEY_TOKEN = "token"
         const val KEY_USER_ID = "user_id"
         const val KEY_ROLE = "role"
+        const val KEY_OWNER_ID = "owner_id"
     }
 }
