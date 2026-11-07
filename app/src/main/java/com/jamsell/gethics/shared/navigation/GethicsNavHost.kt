@@ -230,7 +230,10 @@ fun GethicsNavHost(
         // ---------------- analytics ----------------
         composable(Routes.REPORTS) {
             ReportsScreen(
-                viewModel = gethicsViewModel { ReportsViewModel(container.analyticsRepository) }
+                viewModel = gethicsViewModel {
+                    ReportsViewModel(container.analyticsRepository, container.sessionStorage.getOwnerId())
+                },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
             )
         }
 
