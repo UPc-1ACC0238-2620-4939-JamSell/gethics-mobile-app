@@ -45,11 +45,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.domain.model.AnimalStatus
 import com.jamsell.gethics.shared.ui.components.AlertBanner
@@ -63,8 +65,9 @@ import com.skydoves.landscapist.glide.GlideImage
 import java.util.Locale
 
 // Lenguaje visual del frame "Inventario de Ganado" (390w light) del Figma. Colores locales, como en US14: el theme global no cambia.
-// Limitaciones: el Figma muestra estado de salud (Sano/Enfermo), "requieren atencion" y la campana de notificaciones; el backend
-// de Livestock no tiene esos datos todavia, asi que no se muestran. El Figma usa Montserrat; aqui se mantiene Roboto.
+// Limitaciones: el Figma muestra estado de salud (Sano/Enfermo) y "requieren atencion"; el backend de Livestock no tiene esos
+// datos todavia, asi que no se muestran. La campana (nodo 6:596) abre las Alertas de US21, sin el punto rojo de "sin leer": el
+// backend no expone un conteo de no leidas. El Figma usa Montserrat; aqui se mantiene Roboto.
 private val PageBackground = Color(0xFFF8FBF8)
 private val TextPrimary = Color(0xFF141D16)
 private val TextSecondary = Color(0xFF5D665F)
@@ -89,7 +92,13 @@ private fun countLabel(count: Int): String = if (count == 1) "1 animal" else "$c
 private fun resultsLabel(count: Int): String = if (count == 1) "1 RESULTADO" else "$count RESULTADOS"
 
 @Composable
-fun AnimalListScreen(viewModel: AnimalListViewModel, onAnimalClick: (String) -> Unit, onAddAnimal: () -> Unit) {
+fun AnimalListScreen(
+    viewModel: AnimalListViewModel,
+    onAnimalClick: (String) -> Unit,
+    onAddAnimal: () -> Unit,
+    // US21. null = la campana no se muestra (hasta que GethicsNavHost tenga la ruta de Alertas).
+    onOpenAlerts: (() -> Unit)? = null
+) {
     val state = viewModel.state.value
     val animals = state.data
     val query = viewModel.query.value
@@ -107,7 +116,7 @@ fun AnimalListScreen(viewModel: AnimalListViewModel, onAnimalClick: (String) -> 
             .background(PageBackground)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Header(total = viewModel.total.value)
+            Header(total = viewModel.total.value, onOpenAlerts = onOpenAlerts)
             SearchRow(
                 query = query,
                 onQueryChange = viewModel::onQueryChange,
@@ -159,9 +168,9 @@ fun AnimalListScreen(viewModel: AnimalListViewModel, onAnimalClick: (String) -> 
     }
 }
 
-/** Logo + titulo + total de animales del hato (sin "requieren atencion": no hay datos de salud). */
+/** Logo + titulo + total de animales del hato (sin "requieren atencion": no hay datos de salud) + campana de alertas. */
 @Composable
-private fun Header(total: Int?) {
+private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -170,9 +179,28 @@ private fun Header(total: Int?) {
     ) {
         GethicsLogoMark(size = 40.dp, shape = CircleShape)
         Spacer(Modifier.width(12.dp))
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(text = "Inventario de Ganado", style = TitleStyle)
             if (total != null) Text(text = countLabel(total), style = SubtitleStyle)
+        }
+        if (onOpenAlerts != null) {
+            // Boton del Figma (nodo 6:596): circulo blanco de 44dp con borde 1dp y campana de 20dp
+            Surface(
+                onClick = onOpenAlerts,
+                modifier = Modifier.size(44.dp),
+                shape = CircleShape,
+                color = Color.White,
+                border = BorderStroke(1.dp, Color(0xFFE3E8E1))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_bell),
+                        contentDescription = "Alertas",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.Unspecified
+                    )
+                }
+            }
         }
     }
 }
