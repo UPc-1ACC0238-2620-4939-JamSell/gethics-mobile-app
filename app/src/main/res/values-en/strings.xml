@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name">Gethics</string>
+
+    <!-- Common -->
+    <string name="common_accept">OK</string>
+    <string name="common_cancel">Cancel</string>
+
+    <!-- Bottom bar -->
+    <string name="nav_herd">Herd</string>
+    <string name="nav_clients">Clients</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_finance">Finance</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Finance -->
+    <string name="finance_title">Finance</string>
+    <string name="finance_balance">Balance</string>
+    <string name="finance_income">Income</string>
+    <string name="finance_expense">Expenses</string>
+    <string name="finance_register">Register transaction</string>
+    <string name="finance_all_history">Entire history</string>
+    <string name="finance_see_all">View all</string>
+    <string name="finance_by_month">View by month</string>
+    <string name="finance_empty">No transactions registered for the selected period.</string>
+
+    <!-- Register income / expense -->
+    <string name="tx_title">Register income / expense</string>
+    <string name="tx_type">Type</string>
+    <string name="tx_income">Income</string>
+    <string name="tx_expense">Expense</string>
+    <string name="tx_amount">Amount (S/)</string>
+    <string name="tx_category">Category</string>
+    <string name="tx_date">Date</string>
+    <string name="tx_description">Description (optional)</string>
+    <string name="tx_save">Save</string>
+    <string name="tx_error_amount">Enter an amount greater than zero</string>
+    <string name="tx_error_category">Category is required</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Reports</string>
+    <string name="reports_from">From</string>
+    <string name="reports_to">To</string>
+    <string name="reports_generate">Generate report</string>
+    <string name="reports_finance">Finance</string>
+    <string name="reports_health">Herd health</string>
+    <string name="reports_productivity">Productivity</string>
+    <string name="reports_net">Net result</string>
+    <string name="reports_limited">Limited data</string>
+    <string name="reports_ok">Enough data</string>
+    <string name="reports_error_range">The start date cannot be after the end date</string>
+
+    <!-- Notifications -->
+    <string name="notif_title">Notifications</string>
+    <string name="notif_push">Push notifications</string>
+    <string name="notif_push_desc">Get health and finance alerts on your phone.</string>
+
+    <!-- Settings -->
+    <string name="settings_open">Settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_loading">Loading…</string>
+    <string name="settings_language">Language</string>
+    <string name="lang_system">System language</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_en">English</string>
+</resources>

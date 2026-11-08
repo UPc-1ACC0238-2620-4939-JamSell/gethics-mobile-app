@@ -40,6 +40,8 @@ import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVa
 import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVaccinationViewModel
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarScreen
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarViewModel
+import com.jamsell.gethics.notifications.presentation.settings.SettingsScreen
+import com.jamsell.gethics.notifications.presentation.settings.NotificationSettingsViewModel
 import com.jamsell.gethics.shared.di.AppContainer
 import com.jamsell.gethics.shared.di.gethicsViewModel
 import com.jamsell.gethics.subscription.presentation.plans.PlansScreen
@@ -214,21 +216,40 @@ fun GethicsNavHost(
         // ---------------- finance ----------------
         composable(Routes.FINANCE_SUMMARY) {
             FinanceSummaryScreen(
-                viewModel = gethicsViewModel { FinanceSummaryViewModel(container.financeRepository) },
-                onRegisterTransaction = { navController.navigate(Routes.REGISTER_TRANSACTION) }
+                viewModel = gethicsViewModel {
+                    FinanceSummaryViewModel(container.financeRepository, container.sessionStorage.getOwnerId())
+                },
+                onRegisterTransaction = { navController.navigate(Routes.REGISTER_TRANSACTION) },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
             )
         }
         composable(Routes.REGISTER_TRANSACTION) {
             RegisterTransactionScreen(
-                viewModel = gethicsViewModel { RegisterTransactionViewModel(container.financeRepository) },
-                onSaved = { navController.popBackStack() }
+                viewModel = gethicsViewModel {
+                    RegisterTransactionViewModel(container.financeRepository, container.sessionStorage.getOwnerId())
+                },
+                onSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         }
 
         // ---------------- analytics ----------------
         composable(Routes.REPORTS) {
             ReportsScreen(
-                viewModel = gethicsViewModel { ReportsViewModel(container.analyticsRepository) }
+                viewModel = gethicsViewModel {
+                    ReportsViewModel(container.analyticsRepository, container.sessionStorage.getOwnerId())
+                },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+            )
+        }
+
+        // ---------------- settings (notificaciones + idioma) ----------------
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                viewModel = gethicsViewModel {
+                    NotificationSettingsViewModel(container.notificationRepository, container.sessionStorage.getOwnerId())
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
