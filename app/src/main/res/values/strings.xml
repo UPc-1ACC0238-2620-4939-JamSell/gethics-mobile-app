@@ -50,6 +50,23 @@
     <string name="reports_ok">Datos suficientes</string>
     <string name="reports_error_range">La fecha inicial no puede ser posterior a la final</string>
 
+    <!-- Alertas (US21) -->
+    <string name="alerts_title">Alertas</string>
+    <string name="alerts_back">Volver</string>
+    <string name="alerts_type_sanitary">Sanitaria</string>
+    <string name="alerts_type_financial">Financiera</string>
+    <string name="alerts_type_combined">Combinada</string>
+    <string name="alerts_risk_low">Riesgo bajo</string>
+    <string name="alerts_risk_medium">Riesgo medio</string>
+    <string name="alerts_risk_high">Riesgo alto</string>
+    <string name="alerts_risk_critical">Riesgo crítico</string>
+    <string name="alerts_status_pending">Pendiente</string>
+    <string name="alerts_status_sent">Enviada</string>
+    <string name="alerts_status_read">Leída</string>
+    <string name="alerts_empty">No hay alertas registradas.</string>
+    <string name="alerts_load_error">No se pudieron cargar las alertas</string>
+    <string name="alerts_no_date">Sin fecha registrada</string>
+
     <!-- Notificaciones -->
     <string name="notif_title">Notificaciones</string>
     <string name="notif_push">Notificaciones push</string>
@@ -63,4 +80,43 @@
     <string name="lang_system">Idioma del sistema</string>
     <string name="lang_es">Español</string>
     <string name="lang_en">English</string>
+
+    <!-- Hato / Inventario de Ganado -->
+    <string name="livestock_title">Inventario de Ganado</string>
+    <plurals name="livestock_animal_count">
+        <item quantity="one">%d animal</item>
+        <item quantity="many">%d animales</item>
+        <item quantity="other">%d animales</item>
+    </plurals>
+    <plurals name="livestock_results_count">
+        <item quantity="one">%d RESULTADO</item>
+        <item quantity="many">%d RESULTADOS</item>
+        <item quantity="other">%d RESULTADOS</item>
+    </plurals>
+    <string name="livestock_offline">Sin conexión: mostrando los datos guardados</string>
+    <string name="livestock_add">Registrar animal</string>
+    <string name="livestock_search_hint">Buscar por arete o raza</string>
+    <string name="livestock_search_clear">Borrar búsqueda</string>
+    <string name="livestock_filter_by_status">Filtrar por estado: %1$s</string>
+    <string name="livestock_selected">Seleccionado</string>
+    <string name="livestock_status_active">Activos</string>
+    <string name="livestock_status_sold">Vendidos</string>
+    <string name="livestock_status_deceased">Fallecidos</string>
+    <string name="livestock_status_inactive">Inactivos</string>
+    <string name="livestock_empty">No hay animales registrados.</string>
+    <string name="livestock_no_results">Sin resultados.</string>
+
+    <!-- Calendario sanitario -->
+    <string name="sanitary_calendar_title">Calendario sanitario</string>
+    <string name="sanitary_calendar_previous_month">Mes anterior</string>
+    <string name="sanitary_calendar_next_month">Mes siguiente</string>
+    <string name="sanitary_calendar_mark_applied">Registrar vacuna como aplicada</string>
+    <string name="sanitary_calendar_register">Registrar</string>
+    <string name="sanitary_calendar_applied_on">Fecha de aplicación</string>
+    <string name="sanitary_calendar_empty">No hay actividades pendientes.</string>
+    <string name="sanitary_calendar_type_vaccination">Vacuna</string>
+    <string name="sanitary_calendar_type_treatment">Tratamiento</string>
+    <string name="sanitary_calendar_type_disease">Enfermedad</string>
+    <string name="sanitary_calendar_type_checkup">Chequeo</string>
+    <string name="sanitary_calendar_type_other">Otro</string>
 </resources>

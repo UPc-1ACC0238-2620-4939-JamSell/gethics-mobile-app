@@ -17,9 +17,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 
-/** Fallback si el backend no enviara message con la lista vacia (escenario 2). */
-const val NO_PENDING_ACTIVITIES = "No hay actividades pendientes."
-
 /** clock: el mes actual sale de la zona horaria del dispositivo; inyectable para tests. */
 class SanitaryCalendarViewModel(
     private val repository: SanitaryRepository,
@@ -66,7 +63,8 @@ class SanitaryCalendarViewModel(
             _state.value = when (val result = repository.getCalendar(period)) {
                 is Resource.Success -> {
                     val calendar = result.data!!
-                    val emptyMessage = calendar.message?.takeIf { it.isNotBlank() } ?: NO_PENDING_ACTIVITIES
+                    // Sin message del backend queda "" y la pantalla muestra sanitary_calendar_empty en el idioma de la app
+                    val emptyMessage = calendar.message?.takeIf { it.isNotBlank() }.orEmpty()
                     UIState(data = calendar.events, message = if (calendar.events.isEmpty()) emptyMessage else "")
                 }
                 is Resource.Error -> UIState(message = result.message ?: "No se pudo cargar el calendario")

@@ -11,19 +11,17 @@ import com.jamsell.gethics.shared.common.UIState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-/** Fallback si el backend no enviara message con la lista vacia. */
-const val NO_ALERTS = "No hay alertas registradas."
-
 /**
- * US21. [ownerId] llega desde la navegacion: este ViewModel no decide de donde sale el UUID del ganadero
- * (hoy, SessionStorage.getOwnerId() de feat/app-reportes, pendiente de merge).
+ * US21. [ownerId] llega desde la navegacion.
+ * ownerId se obtiene desde la sesión activa mediante SessionStorage.
  */
 class AlertsViewModel(
     private val repository: AlertRepository,
     private val ownerId: String
 ) : ViewModel() {
 
-    // data = alertas en el orden del backend (vacia -> message es el empty state); data null -> message es el error
+    // data = alertas en el orden del backend (vacia -> message es el empty state); data null -> message es el error.
+    // message vacio = sin texto del backend: AlertsScreen muestra el fallback localizado (alerts_empty / alerts_load_error).
     private val _state = mutableStateOf(UIState<List<AlertDto>>())
     val state: State<UIState<List<AlertDto>>> get() = _state
 
@@ -40,10 +38,9 @@ class AlertsViewModel(
             _state.value = when (val result = repository.getAlerts(ownerId)) {
                 is Resource.Success -> {
                     val response = result.data!!
-                    val emptyMessage = response.message?.takeIf { it.isNotBlank() } ?: NO_ALERTS
-                    UIState(data = response.alerts, message = if (response.alerts.isEmpty()) emptyMessage else "")
+                    UIState(data = response.alerts, message = if (response.alerts.isEmpty()) response.message.orEmpty() else "")
                 }
-                is Resource.Error -> UIState(message = result.message ?: "No se pudieron cargar las alertas")
+                is Resource.Error -> UIState(message = result.message.orEmpty())
             }
         }
     }

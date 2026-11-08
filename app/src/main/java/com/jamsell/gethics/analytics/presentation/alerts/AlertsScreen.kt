@@ -24,7 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.SpanStyle
@@ -37,7 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jamsell.gethics.R
 import com.jamsell.gethics.analytics.data.AlertDto
+import com.jamsell.gethics.analytics.data.AlertStatus
 import com.jamsell.gethics.analytics.data.RiskLevel
+import com.jamsell.gethics.analytics.data.TrendType
 import com.jamsell.gethics.shared.ui.components.ErrorMessage
 import com.jamsell.gethics.shared.ui.components.LoadingBox
 import com.jamsell.gethics.shared.ui.theme.FigmaLineHeight
@@ -77,8 +81,11 @@ fun AlertsScreen(viewModel: AlertsViewModel, onBack: () -> Unit) {
 
         when {
             state.isLoading -> LoadingBox()
-            alerts == null -> ErrorMessage(message = state.message, onRetry = viewModel::load)
-            alerts.isEmpty() -> EmptyMessage(message = state.message)
+            alerts == null -> ErrorMessage(
+                message = state.message.ifBlank { stringResource(R.string.alerts_load_error) },
+                onRetry = viewModel::load
+            )
+            alerts.isEmpty() -> EmptyMessage(message = state.message.ifBlank { stringResource(R.string.alerts_empty) })
             // Orden del backend (mas reciente primero): no se reordena aqui.
             else -> Surface(
                 modifier = Modifier
@@ -116,13 +123,13 @@ private fun Header(onBack: () -> Unit) {
             IconButton(onClick = onBack) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_back),
-                    contentDescription = "Volver",
+                    contentDescription = stringResource(R.string.alerts_back),
                     modifier = Modifier.size(20.dp),
                     tint = TextPrimary
                 )
             }
             Spacer(Modifier.width(8.dp))
-            Text(text = "Alertas", modifier = Modifier.weight(1f), style = HeaderTitleStyle)
+            Text(text = stringResource(R.string.alerts_title), modifier = Modifier.weight(1f), style = HeaderTitleStyle)
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(Divider))
     }
@@ -135,10 +142,37 @@ private fun Header(onBack: () -> Unit) {
  */
 @Composable
 private fun AlertRow(alert: AlertDto) {
-    val typeLabel = alert.trendType?.label
-    val riskLabel = alert.riskLevel?.let { "Riesgo ${it.label.lowercase()}" }
-    val statusLabel = alert.status?.label
-    val dateText = formatAlertDate(alert.createdAt, ZoneId.systemDefault())
+    // Codigos del backend -> texto ES/EN; alert.message se muestra tal cual llega.
+    val typeLabel = alert.trendType?.let {
+        stringResource(
+            when (it) {
+                TrendType.SANITARY -> R.string.alerts_type_sanitary
+                TrendType.FINANCIAL -> R.string.alerts_type_financial
+                TrendType.COMBINED -> R.string.alerts_type_combined
+            }
+        )
+    }
+    val riskLabel = alert.riskLevel?.let {
+        stringResource(
+            when (it) {
+                RiskLevel.LOW -> R.string.alerts_risk_low
+                RiskLevel.MEDIUM -> R.string.alerts_risk_medium
+                RiskLevel.HIGH -> R.string.alerts_risk_high
+                RiskLevel.CRITICAL -> R.string.alerts_risk_critical
+            }
+        )
+    }
+    val statusLabel = alert.status?.let {
+        stringResource(
+            when (it) {
+                AlertStatus.PENDING -> R.string.alerts_status_pending
+                AlertStatus.SENT -> R.string.alerts_status_sent
+                AlertStatus.READ -> R.string.alerts_status_read
+            }
+        )
+    }
+    val dateText = formatAlertDate(alert.createdAt, ZoneId.systemDefault(), LocalConfiguration.current.locales[0])
+        ?: stringResource(R.string.alerts_no_date)
     val detail = listOfNotNull(riskLabel, statusLabel, dateText).joinToString(" · ")
     val spoken = listOfNotNull(typeLabel, alert.message, riskLabel, statusLabel, dateText).joinToString(", ")
     val highRisk = alert.riskLevel == RiskLevel.HIGH || alert.riskLevel == RiskLevel.CRITICAL
@@ -181,7 +215,7 @@ private fun AlertRow(alert: AlertDto) {
     }
 }
 
-/** Sin alertas: muestra el message del backend ("No hay alertas registradas.") o el fallback del ViewModel. */
+/** Sin alertas: muestra el message del backend tal cual o, si no envio ninguno, alerts_empty. */
 @Composable
 private fun EmptyMessage(message: String) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {

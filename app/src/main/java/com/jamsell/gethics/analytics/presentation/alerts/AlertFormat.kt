@@ -2,30 +2,25 @@ package com.jamsell.gethics.analytics.presentation.alerts
 
 import java.time.Instant
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
 
-/** Mismo texto que US14 para una fecha que no se puede leer: no se inventa ninguna. */
-const val NO_DATE = "Sin fecha registrada"
-
-// Abreviaturas fijas, como en US14: iguales en cualquier dispositivo ("02 nov 2026").
-private val MONTHS = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+// Mes abreviado segun el idioma activo: "02 ago 2026, 05:00" (es) / "02 Aug 2026, 05:00" (en).
+private const val DATE_PATTERN = "dd MMM yyyy, HH:mm"
 
 /**
- * createdAt (Instant ISO en UTC) en la zona del dispositivo: "02 nov 2026, 05:00".
- * [zone] se inyecta para poder probarlo; la pantalla usa ZoneId.systemDefault().
+ * createdAt (Instant ISO en UTC) en la zona y el idioma del dispositivo.
+ * Devuelve null si la fecha no se puede leer (no se inventa ninguna): la pantalla muestra alerts_no_date.
+ * [zone] y [locale] se inyectan para poder probarlo; la pantalla usa ZoneId.systemDefault() y el locale activo.
  */
-fun formatAlertDate(createdAt: String?, zone: ZoneId): String {
+fun formatAlertDate(createdAt: String?, zone: ZoneId, locale: Locale): String? {
     val instant = createdAt?.let {
         try {
             Instant.parse(it)
         } catch (e: DateTimeParseException) {
             null
         }
-    } ?: return NO_DATE
-    val local = instant.atZone(zone)
-    return String.format(
-        Locale.ROOT, "%02d %s %d, %02d:%02d",
-        local.dayOfMonth, MONTHS[local.monthValue - 1], local.year, local.hour, local.minute
-    )
+    } ?: return null
+    return DateTimeFormatter.ofPattern(DATE_PATTERN, locale).format(instant.atZone(zone))
 }

@@ -40,6 +40,7 @@ object Routes {
 
     // analytics
     const val REPORTS = "reports"
+    const val ALERTS = "alerts"
 
     // settings (notificaciones push + idioma)
     const val SETTINGS = "settings"

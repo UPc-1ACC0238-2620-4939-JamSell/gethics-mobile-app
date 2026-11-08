@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.MonitorWeight
 import androidx.compose.material3.DropdownMenu
@@ -51,6 +52,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.domain.model.AnimalStatus
@@ -87,9 +90,24 @@ private val DetailStyle = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, fontWe
 fun formatWeight(kg: Double): String =
     if (kg % 1.0 == 0.0) kg.toLong().toString() else String.format(Locale.US, "%.1f", kg)
 
-private fun countLabel(count: Int): String = if (count == 1) "1 animal" else "$count animales"
+/** Etiqueta del estado en el idioma de la app (AnimalStatus.label queda en espanol para el resto del codigo). */
+@Composable
+private fun statusLabel(status: AnimalStatus): String = stringResource(
+    when (status) {
+        AnimalStatus.ACTIVE -> R.string.livestock_status_active
+        AnimalStatus.SOLD -> R.string.livestock_status_sold
+        AnimalStatus.DECEASED -> R.string.livestock_status_deceased
+        AnimalStatus.INACTIVE -> R.string.livestock_status_inactive
+    }
+)
 
-private fun resultsLabel(count: Int): String = if (count == 1) "1 RESULTADO" else "$count RESULTADOS"
+/** NO_ANIMALS y NO_RESULTS los arma el ViewModel (no vienen del backend): se muestran en el idioma de la app. */
+@Composable
+private fun emptyText(message: String): String = when (message) {
+    NO_ANIMALS -> stringResource(R.string.livestock_empty)
+    NO_RESULTS -> stringResource(R.string.livestock_no_results)
+    else -> message
+}
 
 @Composable
 fun AnimalListScreen(
@@ -97,7 +115,9 @@ fun AnimalListScreen(
     onAnimalClick: (String) -> Unit,
     onAddAnimal: () -> Unit,
     // US21. null = la campana no se muestra (hasta que GethicsNavHost tenga la ruta de Alertas).
-    onOpenAlerts: (() -> Unit)? = null
+    onOpenAlerts: (() -> Unit)? = null,
+    // null = sin acceso a Ajustes (mismo boton que Finanzas/Reportes)
+    onOpenSettings: (() -> Unit)? = null
 ) {
     val state = viewModel.state.value
     val animals = state.data
@@ -116,7 +136,7 @@ fun AnimalListScreen(
             .background(PageBackground)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Header(total = viewModel.total.value, onOpenAlerts = onOpenAlerts)
+            Header(total = viewModel.total.value, onOpenAlerts = onOpenAlerts, onOpenSettings = onOpenSettings)
             SearchRow(
                 query = query,
                 onQueryChange = viewModel::onQueryChange,
@@ -125,7 +145,7 @@ fun AnimalListScreen(
             )
             if (viewModel.offline.value) {
                 AlertBanner(
-                    text = "Sin conexión: mostrando los datos guardados",
+                    text = stringResource(R.string.livestock_offline),
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)
                 )
             }
@@ -133,10 +153,10 @@ fun AnimalListScreen(
             when {
                 state.isLoading && animals == null -> LoadingBox()
                 animals == null -> ErrorMessage(message = state.message, onRetry = { viewModel.load() })
-                animals.isEmpty() -> EmptyState(message = state.message)
+                animals.isEmpty() -> EmptyState(message = emptyText(state.message))
                 else -> {
                     Text(
-                        text = resultsLabel(animals.size),
+                        text = pluralStringResource(R.plurals.livestock_results_count, animals.size, animals.size),
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
                         style = SectionLabelStyle
                     )
@@ -163,14 +183,14 @@ fun AnimalListScreen(
             containerColor = Accent,
             contentColor = Color.White
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Registrar animal")
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.livestock_add))
         }
     }
 }
 
 /** Logo + titulo + total de animales del hato (sin "requieren atencion": no hay datos de salud) + campana de alertas. */
 @Composable
-private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?) {
+private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?, onOpenSettings: (() -> Unit)?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,8 +200,8 @@ private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?) {
         GethicsLogoMark(size = 40.dp, shape = CircleShape)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = "Inventario de Ganado", style = TitleStyle)
-            if (total != null) Text(text = countLabel(total), style = SubtitleStyle)
+            Text(text = stringResource(R.string.livestock_title), style = TitleStyle)
+            if (total != null) Text(text = pluralStringResource(R.plurals.livestock_animal_count, total, total), style = SubtitleStyle)
         }
         if (onOpenAlerts != null) {
             // Boton del Figma (nodo 6:596): circulo blanco de 44dp con borde 1dp y campana de 20dp
@@ -195,11 +215,17 @@ private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         painter = painterResource(R.drawable.ic_bell),
-                        contentDescription = "Alertas",
+                        contentDescription = stringResource(R.string.alerts_title),
                         modifier = Modifier.size(20.dp),
                         tint = Color.Unspecified
                     )
                 }
+            }
+        }
+        if (onOpenSettings != null) {
+            Spacer(Modifier.width(4.dp))
+            IconButton(onClick = onOpenSettings) {
+                Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_open))
             }
         }
     }
@@ -224,12 +250,12 @@ private fun SearchRow(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Buscar por arete o raza") },
+            placeholder = { Text(stringResource(R.string.livestock_search_hint)) },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = if (query.isNotEmpty()) {
                 {
                     IconButton(onClick = { onQueryChange("") }) {
-                        Icon(Icons.Filled.Clear, contentDescription = "Borrar búsqueda")
+                        Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.livestock_search_clear))
                     }
                 }
             } else null,
@@ -260,7 +286,7 @@ private fun StatusFilter(status: AnimalStatus, onStatusChange: (AnimalStatus) ->
             IconButton(onClick = { expanded = true }, modifier = Modifier.size(56.dp)) {
                 Icon(
                     Icons.Filled.Tune,
-                    contentDescription = "Filtrar por estado: ${status.label}",
+                    contentDescription = stringResource(R.string.livestock_filter_by_status, statusLabel(status)),
                     tint = if (filtering) Color.White else TextPrimary
                 )
             }
@@ -268,13 +294,13 @@ private fun StatusFilter(status: AnimalStatus, onStatusChange: (AnimalStatus) ->
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             AnimalStatus.entries.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option.label) },
+                    text = { Text(statusLabel(option)) },
                     onClick = {
                         expanded = false
                         onStatusChange(option)
                     },
                     trailingIcon = if (option == status) {
-                        { Icon(Icons.Filled.Check, contentDescription = "Seleccionado", tint = Accent) }
+                        { Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.livestock_selected), tint = Accent) }
                     } else null
                 )
             }

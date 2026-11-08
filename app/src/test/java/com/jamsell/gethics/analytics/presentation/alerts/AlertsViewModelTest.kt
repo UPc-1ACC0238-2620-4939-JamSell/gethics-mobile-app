@@ -83,12 +83,12 @@ class AlertsViewModelTest {
     }
 
     @Test
-    fun `lista vacia sin message usa el fallback`() = runTest(dispatcher) {
+    fun `lista vacia sin message deja message vacio para el fallback localizado de la UI`() = runTest(dispatcher) {
         val viewModel = AlertsViewModel(AlertRepository(FakeService(ok(emptyList(), null))), ownerId)
         advanceUntilIdle()
 
         assertEquals(emptyList<AlertDto>(), viewModel.state.value.data)
-        assertEquals(NO_ALERTS, viewModel.state.value.message)
+        assertEquals("", viewModel.state.value.message) // AlertsScreen muestra alerts_empty
     }
 
     @Test
