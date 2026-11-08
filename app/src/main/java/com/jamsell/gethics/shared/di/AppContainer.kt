@@ -2,7 +2,9 @@ package com.jamsell.gethics.shared.di
 
 import android.content.Context
 import androidx.room.Room
+import com.jamsell.gethics.analytics.data.AlertService
 import com.jamsell.gethics.analytics.data.AnalyticsService
+import com.jamsell.gethics.analytics.data.repository.AlertRepository
 import com.jamsell.gethics.analytics.data.repository.AnalyticsRepository
 import com.jamsell.gethics.finance.data.FinanceService
 import com.jamsell.gethics.finance.data.repository.FinanceRepository
@@ -74,6 +76,10 @@ class AppContainer(context: Context) {
     // analytics
     val analyticsRepository by lazy {
         AnalyticsRepository(retrofit.create(AnalyticsService::class.java))
+    }
+
+    val alertRepository by lazy {
+        AlertRepository(retrofit.create(AlertService::class.java))
     }
 
     // notifications

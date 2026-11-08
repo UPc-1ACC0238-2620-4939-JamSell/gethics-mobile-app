@@ -7,6 +7,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.jamsell.gethics.analytics.presentation.alerts.AlertsScreen
+import com.jamsell.gethics.analytics.presentation.alerts.AlertsViewModel
 import com.jamsell.gethics.analytics.presentation.reports.ReportsScreen
 import com.jamsell.gethics.analytics.presentation.reports.ReportsViewModel
 import com.jamsell.gethics.finance.presentation.finance_summary.FinanceSummaryScreen
@@ -119,7 +121,9 @@ fun GethicsNavHost(
             AnimalListScreen(
                 viewModel = gethicsViewModel { AnimalListViewModel(container.livestockRepository) },
                 onAnimalClick = { id -> navController.navigate(Routes.animalDetail(id)) },
-                onAddAnimal = { navController.navigate(Routes.ANIMAL_REGISTER) }
+                onAddAnimal = { navController.navigate(Routes.ANIMAL_REGISTER) },
+                onOpenAlerts = { navController.navigate(Routes.ALERTS) },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
             )
         }
         composable(Routes.ANIMAL_REGISTER) {
@@ -159,7 +163,8 @@ fun GethicsNavHost(
         // ---------------- sanitary ----------------
         composable(Routes.SANITARY_CALENDAR) {
             SanitaryCalendarScreen(
-                viewModel = gethicsViewModel { SanitaryCalendarViewModel(container.sanitaryRepository) }
+                viewModel = gethicsViewModel { SanitaryCalendarViewModel(container.sanitaryRepository) },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
             )
         }
         composable(
@@ -240,6 +245,14 @@ fun GethicsNavHost(
                     ReportsViewModel(container.analyticsRepository, container.sessionStorage.getOwnerId())
                 },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+            )
+        }
+        composable(Routes.ALERTS) {
+            AlertsScreen(
+                viewModel = gethicsViewModel {
+                    AlertsViewModel(container.alertRepository, container.sessionStorage.getOwnerId())
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 

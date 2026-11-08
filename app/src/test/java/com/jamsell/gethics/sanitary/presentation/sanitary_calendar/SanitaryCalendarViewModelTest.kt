@@ -117,13 +117,13 @@ class SanitaryCalendarViewModelTest {
     }
 
     @Test
-    fun `respuesta vacia muestra No hay actividades pendientes`() = runTest(dispatcher) {
-        val service = FakeService { emptyList() } // message null -> fallback
+    fun `respuesta vacia sin message deja el mensaje vacio para el fallback de la pantalla`() = runTest(dispatcher) {
+        val service = FakeService { emptyList() } // message null -> la pantalla resuelve el fallback
         val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-11-10T12:00:00Z"))
         advanceUntilIdle()
 
         assertEquals(emptyList<ScheduledEventDto>(), viewModel.state.value.data)
-        assertEquals("No hay actividades pendientes.", viewModel.state.value.message)
+        assertEquals("", viewModel.state.value.message)
     }
 
     @Test

@@ -38,7 +38,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
@@ -56,6 +59,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import com.jamsell.gethics.R
 import com.jamsell.gethics.sanitary.data.ScheduledEventDto
 import com.jamsell.gethics.shared.ui.components.ErrorMessage
@@ -64,6 +69,7 @@ import com.jamsell.gethics.shared.ui.theme.FigmaLineHeight
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 import java.time.format.TextStyle as JavaTextStyle
 
@@ -88,15 +94,33 @@ private val EventSubtitleStyle = TextStyle(fontSize = 12.sp, lineHeight = 16.sp,
 private val ActionMessageStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Normal, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = Color(0xFFB3261E))
 private val EmptyStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Normal, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = TextSecondary)
 
-private val SPANISH = Locale.forLanguageTag("es")
-private val MONTH_FORMAT = DateTimeFormatter.ofPattern("MMMM yyyy", SPANISH)
-private val SPOKEN_DAY_FORMAT = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", SPANISH)
+// Mes y dias en el idioma activo de la app (LocalConfiguration): nombres desde java.time, sin listas manuales.
+private const val MONTH_PATTERN = "MMMM yyyy"
 
-private fun String.capitalized() = replaceFirstChar { it.titlecase(SPANISH) }
+private fun String.capitalized(locale: Locale) = replaceFirstChar { it.titlecase(locale) }
+
+@Composable
+private fun currentLocale(): Locale = LocalConfiguration.current.locales[0]
+
+/** Tipo del evento en el idioma de la app (SanitaryEventType.label queda en espanol para el registro de eventos). */
+@Composable
+private fun typeLabel(type: SanitaryEventType): String = stringResource(
+    when (type) {
+        SanitaryEventType.VACCINATION -> R.string.sanitary_calendar_type_vaccination
+        SanitaryEventType.TREATMENT -> R.string.sanitary_calendar_type_treatment
+        SanitaryEventType.DISEASE -> R.string.sanitary_calendar_type_disease
+        SanitaryEventType.CHECKUP -> R.string.sanitary_calendar_type_checkup
+        SanitaryEventType.OTHER -> R.string.sanitary_calendar_type_other
+    }
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SanitaryCalendarScreen(viewModel: SanitaryCalendarViewModel) {
+fun SanitaryCalendarScreen(
+    viewModel: SanitaryCalendarViewModel,
+    // null = sin acceso a Ajustes (mismo boton que Finanzas/Reportes)
+    onOpenSettings: (() -> Unit)? = null
+) {
     val state = viewModel.state.value
     val events = state.data
     val completing = viewModel.completing.value
@@ -111,7 +135,14 @@ fun SanitaryCalendarScreen(viewModel: SanitaryCalendarViewModel) {
             .padding(horizontal = ScreenHorizontalPadding)
     ) {
         Spacer(Modifier.height(20.dp))
-        Text(text = "Calendario sanitario", style = TitleStyle)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = stringResource(R.string.sanitary_calendar_title), modifier = Modifier.weight(1f), style = TitleStyle)
+            if (onOpenSettings != null) {
+                IconButton(onClick = onOpenSettings) {
+                    Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_open))
+                }
+            }
+        }
 
         Spacer(Modifier.height(24.dp))
         MonthSelector(
@@ -128,7 +159,7 @@ fun SanitaryCalendarScreen(viewModel: SanitaryCalendarViewModel) {
         when {
             state.isLoading -> LoadingBox()
             events == null -> ErrorMessage(message = state.message, onRetry = viewModel::load)
-            events.isEmpty() -> EmptyMessage(message = state.message)
+            events.isEmpty() -> EmptyMessage(message = state.message.ifBlank { stringResource(R.string.sanitary_calendar_empty) })
             else -> LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
@@ -161,15 +192,16 @@ fun SanitaryCalendarScreen(viewModel: SanitaryCalendarViewModel) {
 /** Icono de calendario en el acento + mes/ano (como la etiqueta del Figma) y botones circulares de 40dp para cambiar de mes. */
 @Composable
 private fun MonthSelector(month: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit) {
+    val locale = currentLocale()
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Icon(painterResource(R.drawable.ic_calendar), contentDescription = null, modifier = Modifier.size(16.dp), tint = Accent)
         Spacer(Modifier.width(8.dp))
-        Text(text = month.format(MONTH_FORMAT).capitalized(), modifier = Modifier.weight(1f), style = MonthStyle)
+        Text(text = month.format(DateTimeFormatter.ofPattern(MONTH_PATTERN, locale)).capitalized(locale), modifier = Modifier.weight(1f), style = MonthStyle)
         // Cada boton ocupa 48dp de layout (area tactil minima) con el circulo de 40dp centrado: pegados dejan 8dp entre
         // circulos, y el offset de 4dp alinea el circulo derecho con el margen de 20dp.
         Row(modifier = Modifier.offset(x = 4.dp)) {
-            MonthButton(rotation = 90f, description = "Mes anterior", onClick = onPrevious)
-            MonthButton(rotation = -90f, description = "Mes siguiente", onClick = onNext)
+            MonthButton(rotation = 90f, description = stringResource(R.string.sanitary_calendar_previous_month), onClick = onPrevious)
+            MonthButton(rotation = -90f, description = stringResource(R.string.sanitary_calendar_next_month), onClick = onNext)
         }
     }
 }
@@ -198,9 +230,10 @@ private fun MonthButton(rotation: Float, description: String, onClick: () -> Uni
 @Composable
 private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit)?, completing: Boolean) {
     val date = LocalDate.parse(event.scheduledDate)
-    val typeLabel = event.type?.label
+    val locale = currentLocale()
+    val typeLabel = event.type?.let { typeLabel(it) }
     val description = event.description?.takeIf { it.isNotBlank() }
-    val spoken = listOfNotNull(date.format(SPOKEN_DAY_FORMAT), typeLabel, description).joinToString(", ")
+    val spoken = listOfNotNull(date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)), typeLabel, description).joinToString(", ")
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -221,7 +254,7 @@ private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit
             ) {
                 Column(modifier = Modifier.width(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = date.dayOfMonth.toString(), style = DayNumberStyle)
-                    Text(text = weekdayAbbreviation(date), style = WeekdayStyle)
+                    Text(text = weekdayAbbreviation(date, locale), style = WeekdayStyle)
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -240,6 +273,7 @@ private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit
  */
 @Composable
 private fun CompleteControl(enabled: Boolean, onClick: () -> Unit) {
+    val label = stringResource(R.string.sanitary_calendar_mark_applied)
     Box(
         modifier = Modifier
             .minimumInteractiveComponentSize()
@@ -247,8 +281,8 @@ private fun CompleteControl(enabled: Boolean, onClick: () -> Unit) {
             .clip(CircleShape)
             .background(Color.White)
             .border(2.dp, TextSecondary.copy(alpha = 0.4f), CircleShape)
-            .clickable(enabled = enabled, role = Role.Button, onClickLabel = "Registrar vacuna como aplicada", onClick = onClick)
-            .semantics { contentDescription = "Registrar vacuna como aplicada" }
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = label, onClick = onClick)
+            .semantics { contentDescription = label }
     )
 }
 
@@ -274,22 +308,22 @@ private fun AppliedOnDialog(onDismiss: () -> Unit, onConfirm: (LocalDate) -> Uni
         confirmButton = {
             TextButton(onClick = {
                 pickerState.selectedDateMillis?.let { onConfirm(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) }
-            }) { Text("Registrar") }
+            }) { Text(stringResource(R.string.sanitary_calendar_register)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } }
     ) {
         DatePicker(
             state = pickerState,
-            title = { Text(text = "Fecha de aplicación", modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) }
+            title = { Text(text = stringResource(R.string.sanitary_calendar_applied_on), modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) }
         )
     }
 }
 
 /** "mar", "mie"... en mayusculas y sin punto final. */
-private fun weekdayAbbreviation(date: LocalDate): String =
-    date.dayOfWeek.getDisplayName(JavaTextStyle.SHORT, SPANISH).removeSuffix(".").uppercase(SPANISH)
+private fun weekdayAbbreviation(date: LocalDate, locale: Locale): String =
+    date.dayOfWeek.getDisplayName(JavaTextStyle.SHORT, locale).removeSuffix(".").uppercase(locale)
 
-/** Mes sin actividades: muestra el message del backend ("No hay actividades pendientes.") o el fallback del ViewModel. */
+/** Mes sin actividades: muestra el message del backend tal cual o, si no envia ninguno, sanitary_calendar_empty. */
 @Composable
 private fun EmptyMessage(message: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
