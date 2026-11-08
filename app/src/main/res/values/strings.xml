@@ -1,3 +1,66 @@
 <resources>
     <string name="app_name">Gethics</string>
+
+    <!-- Comunes -->
+    <string name="common_accept">Aceptar</string>
+    <string name="common_cancel">Cancelar</string>
+
+    <!-- Barra inferior -->
+    <string name="nav_herd">Hato</string>
+    <string name="nav_clients">Clientes</string>
+    <string name="nav_calendar">Calendario</string>
+    <string name="nav_finance">Finanzas</string>
+    <string name="nav_reports">Reportes</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Finanzas -->
+    <string name="finance_title">Finanzas</string>
+    <string name="finance_balance">Balance</string>
+    <string name="finance_income">Ingresos</string>
+    <string name="finance_expense">Gastos</string>
+    <string name="finance_register">Registrar movimiento</string>
+    <string name="finance_all_history">Todo el historial</string>
+    <string name="finance_see_all">Ver todo</string>
+    <string name="finance_by_month">Ver por mes</string>
+    <string name="finance_empty">No existen movimientos registrados para el periodo seleccionado.</string>
+
+    <!-- Registrar ingreso / gasto -->
+    <string name="tx_title">Registrar ingreso / gasto</string>
+    <string name="tx_type">Tipo</string>
+    <string name="tx_income">Ingreso</string>
+    <string name="tx_expense">Gasto</string>
+    <string name="tx_amount">Monto (S/)</string>
+    <string name="tx_category">Categoría</string>
+    <string name="tx_date">Fecha</string>
+    <string name="tx_description">Descripción (opcional)</string>
+    <string name="tx_save">Guardar</string>
+    <string name="tx_error_amount">Ingresa un monto mayor a cero</string>
+    <string name="tx_error_category">La categoría es obligatoria</string>
+
+    <!-- Reportes -->
+    <string name="reports_title">Reportes</string>
+    <string name="reports_from">Desde</string>
+    <string name="reports_to">Hasta</string>
+    <string name="reports_generate">Generar reporte</string>
+    <string name="reports_finance">Finanzas</string>
+    <string name="reports_health">Salud del hato</string>
+    <string name="reports_productivity">Productividad</string>
+    <string name="reports_net">Resultado neto</string>
+    <string name="reports_limited">Datos limitados</string>
+    <string name="reports_ok">Datos suficientes</string>
+    <string name="reports_error_range">La fecha inicial no puede ser posterior a la final</string>
+
+    <!-- Notificaciones -->
+    <string name="notif_title">Notificaciones</string>
+    <string name="notif_push">Notificaciones push</string>
+    <string name="notif_push_desc">Recibe alertas sanitarias y financieras en tu celular.</string>
+
+    <!-- Ajustes -->
+    <string name="settings_open">Ajustes</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_loading">Cargando…</string>
+    <string name="settings_language">Idioma</string>
+    <string name="lang_system">Idioma del sistema</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_en">English</string>
 </resources>

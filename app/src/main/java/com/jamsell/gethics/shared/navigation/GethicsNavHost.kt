@@ -40,6 +40,8 @@ import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVa
 import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVaccinationViewModel
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarScreen
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarViewModel
+import com.jamsell.gethics.notifications.presentation.settings.SettingsScreen
+import com.jamsell.gethics.notifications.presentation.settings.NotificationSettingsViewModel
 import com.jamsell.gethics.shared.di.AppContainer
 import com.jamsell.gethics.shared.di.gethicsViewModel
 import com.jamsell.gethics.subscription.presentation.plans.PlansScreen
@@ -229,6 +231,16 @@ fun GethicsNavHost(
         composable(Routes.REPORTS) {
             ReportsScreen(
                 viewModel = gethicsViewModel { ReportsViewModel(container.analyticsRepository) }
+            )
+        }
+
+        // ---------------- settings (notificaciones + idioma) ----------------
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                viewModel = gethicsViewModel {
+                    NotificationSettingsViewModel(container.notificationRepository, container.sessionStorage.getOwnerId())
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
