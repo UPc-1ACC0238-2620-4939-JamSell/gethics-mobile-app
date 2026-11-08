@@ -1,6 +1,8 @@
 package com.jamsell.gethics.iam.presentation.sign_in
 
 import com.jamsell.gethics.iam.data.AuthService
+import com.jamsell.gethics.iam.data.ForgotPasswordRequest
+import com.jamsell.gethics.iam.data.ResetPasswordRequest
 import com.jamsell.gethics.iam.data.AuthenticatedUserResponse
 import com.jamsell.gethics.iam.data.SignInRequest
 import com.jamsell.gethics.iam.data.SignUpRequest
@@ -43,6 +45,8 @@ class SignInViewModelTest {
 
     private fun viewModel(response: Response<AuthenticatedUserResponse>) = SignInViewModel(
         AuthRepository(object : AuthService {
+            override suspend fun forgotPassword(request: ForgotPasswordRequest) = error("no usado")
+            override suspend fun resetPassword(request: ResetPasswordRequest) = error("no usado")
             override suspend fun signIn(request: SignInRequest): Response<AuthenticatedUserResponse> {
                 requests += request
                 return response

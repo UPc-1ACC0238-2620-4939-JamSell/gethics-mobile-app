@@ -2,6 +2,8 @@ package com.jamsell.gethics.iam.data.repository
 
 import com.google.gson.Gson
 import com.jamsell.gethics.iam.data.AuthService
+import com.jamsell.gethics.iam.data.ForgotPasswordRequest
+import com.jamsell.gethics.iam.data.ResetPasswordRequest
 import com.jamsell.gethics.iam.data.AuthenticatedUserResponse
 import com.jamsell.gethics.iam.data.SignInRequest
 import com.jamsell.gethics.iam.data.SignUpRequest
@@ -27,12 +29,16 @@ class AuthRepositoryTest {
 
     private fun repositoryReturning(block: (SignInRequest) -> Response<AuthenticatedUserResponse>) =
         AuthRepository(object : AuthService {
+            override suspend fun forgotPassword(request: ForgotPasswordRequest) = error("no usado")
+            override suspend fun resetPassword(request: ResetPasswordRequest) = error("no usado")
             override suspend fun signIn(request: SignInRequest) = block(request)
             override suspend fun signUp(request: SignUpRequest) = error("no usado")
         }, session)
 
     private fun signUpRepository(block: (SignUpRequest) -> Response<UserResponse>) =
         AuthRepository(object : AuthService {
+            override suspend fun forgotPassword(request: ForgotPasswordRequest) = error("no usado")
+            override suspend fun resetPassword(request: ResetPasswordRequest) = error("no usado")
             override suspend fun signIn(request: SignInRequest) = error("no usado")
             override suspend fun signUp(request: SignUpRequest) = block(request)
         }, session)

@@ -14,5 +14,11 @@ interface AuthService {
     @POST("auth/register")
     suspend fun signUp(@Body request: SignUpRequest): Response<UserResponse>
 
-    // TODO: auth/forgot-password y auth/reset-password (US03)
+    /** US03. 200 con mensaje generico (no revela si el correo existe); 400 si el correo no tiene formato valido. */
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<MessageResponse>
+
+    /** US03. 200 con mensaje; 400 si el token es invalido o venció, o la contraseña tiene menos de 8 caracteres. */
+    @POST("auth/reset-password")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<MessageResponse>
 }

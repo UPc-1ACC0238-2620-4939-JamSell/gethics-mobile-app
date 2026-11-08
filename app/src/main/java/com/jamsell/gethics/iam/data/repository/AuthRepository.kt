@@ -1,6 +1,8 @@
 package com.jamsell.gethics.iam.data.repository
 
 import com.jamsell.gethics.iam.data.AuthService
+import com.jamsell.gethics.iam.data.ForgotPasswordRequest
+import com.jamsell.gethics.iam.data.ResetPasswordRequest
 import com.jamsell.gethics.iam.data.SignInRequest
 import com.jamsell.gethics.iam.data.SignUpRequest
 import com.jamsell.gethics.iam.domain.model.Role
@@ -39,7 +41,31 @@ class AuthRepository(
             Resource.Error(CONNECTION_ERROR)
         }
 
-    // TODO: forgotPassword / resetPassword (US03)
+    /** US03. Devuelve el mensaje del backend ("Te enviamos un enlace para restablecer tu contraseña"). */
+    suspend fun forgotPassword(email: String): Resource<String> =
+        try {
+            val response = service.forgotPassword(ForgotPasswordRequest(email))
+            if (response.isSuccessful) {
+                Resource.Success(response.body()?.message ?: "Te enviamos un enlace para restablecer tu contraseña")
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    /** US03. No inicia sesion: tras el exito la pantalla vuelve al login. */
+    suspend fun resetPassword(token: String, newPassword: String): Resource<String> =
+        try {
+            val response = service.resetPassword(ResetPasswordRequest(token.trim(), newPassword))
+            if (response.isSuccessful) {
+                Resource.Success(response.body()?.message ?: "Tu contraseña fue actualizada correctamente")
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
 
     fun signOut() = sessionStorage.clear()
 }
