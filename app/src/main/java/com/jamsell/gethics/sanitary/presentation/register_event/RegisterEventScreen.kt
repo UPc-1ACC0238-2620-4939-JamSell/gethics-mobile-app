@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -53,6 +54,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -263,13 +265,18 @@ internal fun FormDateField(date: LocalDate, label: String, onClick: () -> Unit) 
 }
 
 @Composable
-internal fun FormTextField(value: String, onValueChange: (String) -> Unit) {
+internal fun FormTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
     FieldBox {
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             textStyle = InputStyle,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
         )

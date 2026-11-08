@@ -216,14 +216,20 @@ fun GethicsNavHost(
         // ---------------- finance ----------------
         composable(Routes.FINANCE_SUMMARY) {
             FinanceSummaryScreen(
-                viewModel = gethicsViewModel { FinanceSummaryViewModel(container.financeRepository) },
-                onRegisterTransaction = { navController.navigate(Routes.REGISTER_TRANSACTION) }
+                viewModel = gethicsViewModel {
+                    FinanceSummaryViewModel(container.financeRepository, container.sessionStorage.getOwnerId())
+                },
+                onRegisterTransaction = { navController.navigate(Routes.REGISTER_TRANSACTION) },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
             )
         }
         composable(Routes.REGISTER_TRANSACTION) {
             RegisterTransactionScreen(
-                viewModel = gethicsViewModel { RegisterTransactionViewModel(container.financeRepository) },
-                onSaved = { navController.popBackStack() }
+                viewModel = gethicsViewModel {
+                    RegisterTransactionViewModel(container.financeRepository, container.sessionStorage.getOwnerId())
+                },
+                onSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         }
 
