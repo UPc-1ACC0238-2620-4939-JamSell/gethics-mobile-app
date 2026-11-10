@@ -72,6 +72,7 @@ dependencies {
 
     // US29: escaner de QR (Google code scanner, sin permiso de camara)
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+    implementation("com.google.zxing:core:3.5.3")
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

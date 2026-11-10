@@ -16,6 +16,7 @@ import com.jamsell.gethics.iot.data.IotService
 import com.jamsell.gethics.iot.data.repository.IotRepository
 import com.jamsell.gethics.livestock.data.FarmService
 import com.jamsell.gethics.livestock.data.LivestockService
+import com.jamsell.gethics.livestock.data.PrefsLastSyncStore
 import com.jamsell.gethics.livestock.data.repository.FarmRepository
 import com.jamsell.gethics.notifications.data.NotificationService
 import com.jamsell.gethics.notifications.data.repository.NotificationRepository
@@ -64,7 +65,11 @@ class AppContainer(context: Context) {
     // livestock
     val farmRepository by lazy { FarmRepository(retrofit.create(FarmService::class.java)) }
     val livestockRepository by lazy {
-        LivestockRepository(retrofit.create(LivestockService::class.java), database.getAnimalDao())
+        LivestockRepository(
+            retrofit.create(LivestockService::class.java),
+            database.getAnimalDao(),
+            PrefsLastSyncStore(context.getSharedPreferences("gethics_livestock", Context.MODE_PRIVATE))
+        )
     }
 
     // sanitary

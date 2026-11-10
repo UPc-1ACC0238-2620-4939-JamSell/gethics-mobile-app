@@ -36,6 +36,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import com.jamsell.gethics.livestock.presentation.qrBitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -67,6 +71,8 @@ import com.jamsell.gethics.livestock.presentation.sexText
 import com.jamsell.gethics.livestock.presentation.summaryText
 import com.jamsell.gethics.livestock.presentation.animal_list.formatWeight
 import com.jamsell.gethics.shared.ui.components.AlertBanner
+import com.jamsell.gethics.shared.ui.OnNetworkAvailable
+import com.jamsell.gethics.livestock.presentation.offlineBannerText
 import com.jamsell.gethics.shared.ui.components.ErrorMessage
 import com.jamsell.gethics.shared.ui.components.GethicsButton
 import com.jamsell.gethics.shared.ui.components.GethicsLogoMark
@@ -145,6 +151,9 @@ fun AnimalDetailScreen(
         DeactivateDialog(onConfirm = viewModel::confirmDeactivation, onCancel = viewModel::cancelDeactivation)
     }
 
+    // US36: al volver la red, la ficha se actualiza sola.
+    OnNetworkAvailable(enabled = viewModel.offline.value) { viewModel.load() }
+
     // La pantalla vive en el back stack: al volver de editar hay que recargar para ver los cambios.
     LifecycleResumeEffect(viewModel) {
         viewModel.load()
@@ -178,11 +187,12 @@ fun AnimalDetailScreen(
 
                 Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (viewModel.offline.value) {
-                        AlertBanner(text = stringResource(R.string.livestock_offline))
+                        AlertBanner(text = offlineBannerText(viewModel.lastUpdated.value))
                     }
                     Text(text = stringResource(R.string.animal_detail_profile), style = SectionLabelStyle)
                     Text(text = stringResource(R.string.animal_detail_general_data), style = SectionTitleStyle)
                     GeneralData(animal = animal, today = LocalDate.now())
+                    QrCard(code = animal.qrCode)
 
                     Spacer(Modifier.height(4.dp))
                     GethicsButton(
@@ -317,6 +327,23 @@ private fun GeneralData(animal: Animal, today: LocalDate) {
             Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 row.forEach { tile -> InfoTile(tile, Modifier.weight(1f).fillMaxHeight()) }
             }
+        }
+    }
+}
+
+/** US29: el QR unico del animal como imagen (se puede escanear en campo), con su codigo debajo. */
+@Composable
+private fun QrCard(code: String?) {
+    val bitmap = remember(code) { qrBitmap(code, 600)?.asImageBitmap() } ?: return
+    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = Color.White, border = BorderStroke(1.dp, Divider)) {
+        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = stringResource(R.string.animal_detail_qr_image),
+                modifier = Modifier.size(180.dp)
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(text = code.orEmpty(), style = TileValueStyle)
         }
     }
 }

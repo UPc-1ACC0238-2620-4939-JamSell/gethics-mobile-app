@@ -30,6 +30,10 @@ class AnimalDetailViewModel(
     private val _offline = mutableStateOf(false)
     val offline: State<Boolean> get() = _offline
 
+    /** US-36. Cuando se actualizaron por ultima vez los datos guardados (solo se muestra con el aviso sin conexion). */
+    private val _lastUpdated = mutableStateOf<Long?>(null)
+    val lastUpdated: State<Long?> get() = _lastUpdated
+
     private var loadJob: Job? = null
 
     // ---------------- US08: baja logica ----------------
@@ -62,6 +66,7 @@ class AnimalDetailViewModel(
                 is Resource.Error -> {
                     val cached = result.data
                     _offline.value = cached != null
+                    if (cached != null) _lastUpdated.value = repository.lastSyncMillis()
                     _state.value = if (cached != null) {
                         UIState(data = cached)
                     } else {

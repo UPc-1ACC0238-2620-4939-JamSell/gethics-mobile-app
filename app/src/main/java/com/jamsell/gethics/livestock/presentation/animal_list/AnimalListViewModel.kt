@@ -138,8 +138,13 @@ class AnimalListViewModel(private val repository: LivestockRepository) : ViewMod
         }
     }
 
+    /** US-36. Cuando se actualizaron por ultima vez los datos guardados (solo se muestra con el aviso sin conexion). */
+    private val _lastUpdated = mutableStateOf<Long?>(null)
+    val lastUpdated: State<Long?> get() = _lastUpdated
+
     private fun show(animals: List<Animal>, query: String, status: AnimalStatus, offline: Boolean) {
         _offline.value = offline
+        if (offline) _lastUpdated.value = repository.lastSyncMillis()
         if (query.isBlank() && status == AnimalStatus.ACTIVE) _total.value = animals.size
         _state.value = UIState(data = animals, message = if (animals.isEmpty()) emptyMessage(query) else "")
     }

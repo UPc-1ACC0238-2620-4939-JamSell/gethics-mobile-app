@@ -94,6 +94,7 @@
         <item quantity="other">%d RESULTADOS</item>
     </plurals>
     <string name="livestock_offline">Sin conexión: mostrando los datos guardados</string>
+    <string name="livestock_offline_since">Sin conexión: datos guardados el %1$s</string>
     <string name="livestock_add">Registrar animal</string>
     <string name="livestock_search_hint">Buscar por arete o raza</string>
     <string name="livestock_search_clear">Borrar búsqueda</string>
@@ -180,6 +181,7 @@
     <string name="animal_detail_weight">Peso</string>
     <string name="animal_detail_weight_unset">Sin registrar</string>
     <string name="animal_detail_qr">Código QR</string>
+    <string name="animal_detail_qr_image">QR del animal</string>
     <string name="animal_detail_history">Ver historial clínico</string>
     <string name="animal_detail_register_event">Registrar evento sanitario</string>
     <string name="animal_detail_schedule_vaccine">Programar vacuna</string>

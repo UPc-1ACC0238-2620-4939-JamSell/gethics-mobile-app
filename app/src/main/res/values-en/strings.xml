@@ -92,6 +92,7 @@
         <item quantity="other">%d RESULTS</item>
     </plurals>
     <string name="livestock_offline">Offline: showing saved data</string>
+    <string name="livestock_offline_since">Offline: data saved on %1$s</string>
     <string name="livestock_add">Register animal</string>
     <string name="livestock_search_hint">Search by ear tag or breed</string>
     <string name="livestock_search_clear">Clear search</string>
@@ -176,6 +177,7 @@
     <string name="animal_detail_weight">Weight</string>
     <string name="animal_detail_weight_unset">Not recorded</string>
     <string name="animal_detail_qr">QR code</string>
+    <string name="animal_detail_qr_image">Animal QR code</string>
     <string name="animal_detail_history">View clinical history</string>
     <string name="animal_detail_register_event">Register health event</string>
     <string name="animal_detail_schedule_vaccine">Schedule vaccination</string>

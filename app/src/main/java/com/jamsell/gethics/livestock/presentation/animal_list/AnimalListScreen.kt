@@ -65,6 +65,8 @@ import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.domain.model.AnimalStatus
 import com.jamsell.gethics.shared.ui.components.AlertBanner
+import com.jamsell.gethics.shared.ui.OnNetworkAvailable
+import com.jamsell.gethics.livestock.presentation.offlineBannerText
 import com.jamsell.gethics.shared.ui.components.EmptyState
 import com.jamsell.gethics.shared.ui.components.ErrorMessage
 import com.jamsell.gethics.shared.ui.components.GethicsLogoMark
@@ -150,6 +152,9 @@ fun AnimalListScreen(
         )
     }
 
+    // US36: al volver la red, la lista se actualiza sola.
+    OnNetworkAvailable(enabled = viewModel.offline.value) { viewModel.load() }
+
     // La pantalla vive en el back stack: al volver del registro hay que refrescar para ver el animal nuevo.
     LifecycleResumeEffect(viewModel) {
         viewModel.load()
@@ -171,7 +176,7 @@ fun AnimalListScreen(
             )
             if (viewModel.offline.value) {
                 AlertBanner(
-                    text = stringResource(R.string.livestock_offline),
+                    text = offlineBannerText(viewModel.lastUpdated.value),
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)
                 )
             }

@@ -57,3 +57,10 @@ fun localizedAnimalError(error: String?): String? = when (error) {
     INVALID_WEIGHT_ERROR -> stringResource(R.string.animal_error_invalid_weight)
     else -> error
 }
+
+/** US-36. Aviso de modo sin conexion; con fecha de ultima actualizacion si se conoce. */
+@Composable
+fun offlineBannerText(lastUpdatedMillis: Long?): String {
+    val date = formatLastUpdate(lastUpdatedMillis) ?: return stringResource(R.string.livestock_offline)
+    return stringResource(R.string.livestock_offline_since, date)
+}

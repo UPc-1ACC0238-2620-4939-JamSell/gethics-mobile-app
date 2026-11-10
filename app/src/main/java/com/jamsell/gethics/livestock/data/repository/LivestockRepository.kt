@@ -1,6 +1,7 @@
 package com.jamsell.gethics.livestock.data.repository
 
 import com.jamsell.gethics.livestock.data.AnimalSaleResponse
+import com.jamsell.gethics.livestock.data.LastSyncStore
 import com.jamsell.gethics.livestock.data.LivestockService
 import com.jamsell.gethics.livestock.data.RegisterAnimalRequest
 import com.jamsell.gethics.livestock.data.SellAnimalRequest
@@ -39,7 +40,10 @@ fun searchPattern(search: String?): String {
  */
 class LivestockRepository(
     private val service: LivestockService,
-    private val dao: AnimalDao
+    private val dao: AnimalDao,
+    // US-36: momento de la ultima vez que se trajeron animales del backend (null en tests que no lo usan)
+    private val lastSync: LastSyncStore? = null,
+    private val now: () -> Long = System::currentTimeMillis
 ) {
     /**
      * US05. Registra el animal en el backend y guarda en Room la respuesta (con el arete normalizado y el QR del servidor).
@@ -74,6 +78,9 @@ class LivestockRepository(
      * - Sin conexion: Resource.Error con el mensaje de conexion Y los animales guardados que cumplen el filtro en data.
      * - Otro error del backend: Resource.Error con su message y sin data.
      */
+    /** US-36. Cuando se actualizaron por ultima vez los animales guardados; null si nunca. */
+    fun lastSyncMillis(): Long? = lastSync?.get()
+
     suspend fun getAnimals(search: String?, status: AnimalStatus): Resource<List<Animal>> {
         val criterion = search?.trim()?.takeIf { it.isNotEmpty() }
         return try {
@@ -87,6 +94,7 @@ class LivestockRepository(
                 } else {
                     dao.insertAll(animals.map { it.toEntity() })
                 }
+                lastSync?.save(now())
                 Resource.Success(animals)
             } else {
                 Resource.Error(response.errorMessage())
@@ -108,6 +116,7 @@ class LivestockRepository(
             if (response.isSuccessful && body != null) {
                 val animal = body.toAnimal(dao.fetchById(id)?.photoUrl)
                 dao.insert(animal.toEntity())
+                lastSync?.save(now())
                 Resource.Success(animal)
             } else {
                 Resource.Error(response.errorMessage())
