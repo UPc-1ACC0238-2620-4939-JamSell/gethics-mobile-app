@@ -121,4 +121,26 @@
     <string name="sanitary_calendar_type_disease">Disease</string>
     <string name="sanitary_calendar_type_checkup">Checkup</string>
     <string name="sanitary_calendar_type_other">Other</string>
+
+    <!-- Export report (US39) -->
+    <string name="reports_export">Export report</string>
+    <string name="reports_exporting">Exporting…</string>
+    <string name="reports_export_share_title">Share report</string>
+
+    <!-- IoT devices (US23 and US37) -->
+    <string name="iot_open">IoT devices</string>
+    <string name="iot_title">IoT devices</string>
+    <string name="iot_code">Device code</string>
+    <string name="iot_link">Link device</string>
+    <string name="iot_error_code">Enter the device code (50 characters maximum)</string>
+    <string name="iot_loading">Loading devices…</string>
+    <string name="iot_empty">You have not linked any device yet.</string>
+    <string name="iot_status_connected">Connected</string>
+    <string name="iot_status_disconnected">Disconnected</string>
+    <string name="iot_last_reading">Last reading: %1$s</string>
+    <string name="iot_no_reading">no readings</string>
+    <string name="iot_readings_title">Sensor readings</string>
+    <string name="iot_readings_title_with_code">Readings · %1$s</string>
+    <string name="iot_readings_empty">This device has not reported any readings yet.</string>
+    <string name="iot_readings_loading_more">Loading more readings…</string>
 </resources>

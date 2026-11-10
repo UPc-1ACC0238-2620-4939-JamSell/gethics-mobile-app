@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jamsell.gethics.analytics.data.ExportedReport
 import com.jamsell.gethics.analytics.data.LivestockReportResponse
 import com.jamsell.gethics.analytics.data.repository.AnalyticsRepository
 import com.jamsell.gethics.shared.common.Resource
@@ -61,5 +62,32 @@ class ReportsViewModel(
                 is Resource.Error -> UIState(message = result.message ?: "No se pudo generar el reporte")
             }
         }
+    }
+
+    // US39: exportacion en CSV. data = archivo listo para compartir; message = aviso (por ejemplo, sin informacion)
+    private val _export = mutableStateOf(UIState<ExportedReport>())
+    val exportState: State<UIState<ExportedReport>> get() = _export
+
+    fun exportReport() {
+        if (_export.value.isLoading) return
+        if (!isValidRange(_from.value, _to.value)) {
+            _rangeError.value = true
+            return
+        }
+        _rangeError.value = false
+        val from = _from.value
+        val to = _to.value
+        _export.value = UIState(isLoading = true)
+        viewModelScope.launch {
+            _export.value = when (val result = repository.exportReport(ownerId, from, to)) {
+                is Resource.Success -> UIState(data = result.data)
+                is Resource.Error -> UIState(message = result.message ?: "No se pudo exportar el reporte")
+            }
+        }
+    }
+
+    /** La pantalla ya compartio el archivo: se limpia para no volver a abrirlo al recomponer. */
+    fun consumeExport() {
+        _export.value = UIState()
     }
 }
