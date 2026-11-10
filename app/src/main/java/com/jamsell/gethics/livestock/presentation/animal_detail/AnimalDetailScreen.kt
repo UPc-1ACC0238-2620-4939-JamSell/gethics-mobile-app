@@ -36,6 +36,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
+import com.jamsell.gethics.shared.ui.components.GethicsTextField
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -109,10 +115,26 @@ fun AnimalDetailScreen(
     onOpenClinicalHistory: (String) -> Unit,
     onRegisterEvent: (String) -> Unit,
     onScheduleVaccination: (String) -> Unit,
-    onDeactivated: () -> Unit = onBack
+    onDeactivated: () -> Unit = onBack,
+    onSold: () -> Unit = onBack,
+    onEditFarm: (String) -> Unit = {}
 ) {
     val state = viewModel.state.value
     val animal = state.data
+
+    // US30: cuando la venta se registra, la pantalla vuelve a la lista.
+    LaunchedEffect(viewModel.sold.value) {
+        if (viewModel.sold.value) onSold()
+    }
+
+    if (viewModel.sellingForm.value) {
+        SaleDialog(
+            defaultDate = viewModel.defaultSaleDate(),
+            errors = viewModel.saleErrors.value,
+            onConfirm = viewModel::confirmSale,
+            onCancel = viewModel::cancelSale
+        )
+    }
 
     // US08: cuando la baja se confirma, la pantalla vuelve a la lista (donde el animal ya no aparece).
     LaunchedEffect(viewModel.deactivated.value) {
@@ -180,10 +202,27 @@ fun AnimalDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                         outlined = true
                     )
+                    animal.farmId?.let { farmId ->
+                        GethicsButton(
+                            text = stringResource(R.string.animal_detail_edit_farm),
+                            onClick = { onEditFarm(farmId) },
+                            modifier = Modifier.fillMaxWidth(),
+                            outlined = true
+                        )
+                    }
+                    viewModel.saleError.value?.let { error ->
+                        AlertBanner(text = stringResource(R.string.animal_sale_error_prefix, error))
+                    }
                     viewModel.deactivationError.value?.let { error ->
                         AlertBanner(text = stringResource(R.string.animal_deactivate_error_prefix, error))
                     }
                     if (animal.status == null || animal.status == AnimalStatus.ACTIVE.name) {
+                        GethicsButton(
+                            text = stringResource(R.string.animal_sale_button),
+                            onClick = viewModel::requestSale,
+                            modifier = Modifier.fillMaxWidth(),
+                            isLoading = viewModel.selling.value
+                        )
                         GethicsButton(
                             text = stringResource(R.string.animal_deactivate_button),
                             onClick = viewModel::requestDeactivation,
@@ -299,6 +338,59 @@ private fun InfoTile(tile: Tile, modifier: Modifier = Modifier) {
 }
 
 private val DangerColor = Color(0xFFB3261E)
+
+/** Mensajes de validacion de la venta en el idioma de la app; cualquier otro texto se muestra tal cual. */
+@Composable
+private fun localizedSaleError(error: String?): String? = when (error) {
+    null -> null
+    INVALID_PRICE_ERROR -> stringResource(R.string.animal_sale_error_price)
+    INVALID_SALE_DATE_ERROR -> stringResource(R.string.animal_sale_error_date)
+    FUTURE_SALE_DATE_ERROR -> stringResource(R.string.animal_sale_error_future)
+    else -> error
+}
+
+/** US30: precio y fecha de la venta. "Cancelar" cierra el formulario sin llamar al backend. */
+@Composable
+private fun SaleDialog(
+    defaultDate: String,
+    errors: SaleErrors,
+    onConfirm: (price: String, date: String) -> Unit,
+    onCancel: () -> Unit
+) {
+    var price by rememberSaveable { mutableStateOf("") }
+    var date by rememberSaveable { mutableStateOf(defaultDate) }
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.animal_sale_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.animal_sale_message))
+                GethicsTextField(
+                    value = price,
+                    onValueChange = { price = it },
+                    label = stringResource(R.string.animal_sale_price_label),
+                    keyboardType = KeyboardType.Decimal,
+                    errorMessage = localizedSaleError(errors.price),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                GethicsTextField(
+                    value = date,
+                    onValueChange = { date = it },
+                    label = stringResource(R.string.animal_sale_date_label),
+                    helperText = stringResource(R.string.animal_sale_date_hint),
+                    errorMessage = localizedSaleError(errors.date),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(price, date) }) { Text(stringResource(R.string.animal_sale_confirm)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) { Text(stringResource(R.string.animal_cancel)) }
+        }
+    )
+}
 
 /** US08: confirmacion de la baja. "Cancelar" cierra el dialogo sin llamar al backend (escenario 2). */
 @Composable

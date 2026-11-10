@@ -14,7 +14,9 @@ import com.jamsell.gethics.iam.data.repository.UserRepository
 import com.jamsell.gethics.iam.data.repository.AuthRepository
 import com.jamsell.gethics.iot.data.IotService
 import com.jamsell.gethics.iot.data.repository.IotRepository
+import com.jamsell.gethics.livestock.data.FarmService
 import com.jamsell.gethics.livestock.data.LivestockService
+import com.jamsell.gethics.livestock.data.repository.FarmRepository
 import com.jamsell.gethics.notifications.data.NotificationService
 import com.jamsell.gethics.notifications.data.repository.NotificationRepository
 import com.jamsell.gethics.livestock.data.repository.LivestockRepository
@@ -60,6 +62,7 @@ class AppContainer(context: Context) {
     }
 
     // livestock
+    val farmRepository by lazy { FarmRepository(retrofit.create(FarmService::class.java)) }
     val livestockRepository by lazy {
         LivestockRepository(retrofit.create(LivestockService::class.java), database.getAnimalDao())
     }

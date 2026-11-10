@@ -19,6 +19,8 @@ object Routes {
     fun animalDetail(animalId: String) = "animal_detail/$animalId"
     const val ANIMAL_EDIT = "animal_edit/{animalId}"
     fun animalEdit(animalId: String) = "animal_edit/$animalId"
+    const val FARM_EDIT = "farm_edit/{farmId}"
+    fun farmEdit(farmId: String) = "farm_edit/$farmId"
 
     // sanitary
     const val SANITARY_CALENDAR = "sanitary_calendar"

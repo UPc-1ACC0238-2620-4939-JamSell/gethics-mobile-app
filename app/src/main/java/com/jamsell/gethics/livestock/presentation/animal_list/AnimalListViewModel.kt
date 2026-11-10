@@ -20,6 +20,9 @@ const val NO_RESULTS = "Sin resultados."
 /** Espera tras la ultima tecla antes de consultar: evita una peticion por letra. */
 const val SEARCH_DEBOUNCE_MS = 300L
 
+/** Mensaje cuando se busca por QR sin escribir ni escanear un codigo; la pantalla lo traduce. */
+const val QR_REQUIRED_ERROR = "Escanea o escribe el código QR"
+
 fun emptyMessage(query: String): String = if (query.isBlank()) NO_ANIMALS else NO_RESULTS
 
 class AnimalListViewModel(private val repository: LivestockRepository) : ViewModel() {
@@ -43,6 +46,63 @@ class AnimalListViewModel(private val repository: LivestockRepository) : ViewMod
     val total: State<Int?> get() = _total
 
     private var loadJob: Job? = null
+
+    // ---------------- US29: buscar un animal por su QR ----------------
+
+    /** true mientras se muestra el dialogo "Buscar por QR". */
+    private val _qrDialog = mutableStateOf(false)
+    val qrDialog: State<Boolean> get() = _qrDialog
+
+    private val _qrLooking = mutableStateOf(false)
+    val qrLooking: State<Boolean> get() = _qrLooking
+
+    /** Mensaje si el codigo esta vacio, no existe (404) o no hubo conexion ni copia guardada; null si no hay error. */
+    private val _qrError = mutableStateOf<String?>(null)
+    val qrError: State<String?> get() = _qrError
+
+    /** Id del animal encontrado: la pantalla abre su ficha y llama a consumeQrResult(). */
+    private val _qrResult = mutableStateOf<String?>(null)
+    val qrResult: State<String?> get() = _qrResult
+
+    fun openQrDialog() {
+        _qrError.value = null
+        _qrDialog.value = true
+    }
+
+    fun closeQrDialog() {
+        _qrDialog.value = false
+        _qrError.value = null
+    }
+
+    /** Busca el animal de ese codigo. Sin conexion, si el animal esta guardado en el telefono, se abre igual (US-36). */
+    fun lookUpQr(code: String) {
+        if (_qrLooking.value) return
+        if (code.isBlank()) {
+            _qrError.value = QR_REQUIRED_ERROR
+            return
+        }
+        _qrError.value = null
+        _qrLooking.value = true
+        viewModelScope.launch {
+            when (val result = repository.getAnimalByQr(code)) {
+                is Resource.Success -> found(result.data?.id)
+                is Resource.Error -> {
+                    val cached = result.data
+                    if (cached != null) found(cached.id) else _qrError.value = result.message ?: "No se pudo buscar el código QR"
+                }
+            }
+            _qrLooking.value = false
+        }
+    }
+
+    private fun found(id: String?) {
+        _qrDialog.value = false
+        _qrResult.value = id
+    }
+
+    fun consumeQrResult() {
+        _qrResult.value = null
+    }
 
     fun onQueryChange(text: String) {
         _query.value = text

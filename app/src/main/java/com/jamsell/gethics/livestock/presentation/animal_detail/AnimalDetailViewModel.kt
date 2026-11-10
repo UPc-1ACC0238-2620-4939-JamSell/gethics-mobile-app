@@ -6,14 +6,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jamsell.gethics.livestock.data.repository.LivestockRepository
 import com.jamsell.gethics.livestock.domain.model.Animal
+import com.jamsell.gethics.shared.common.Constants
 import com.jamsell.gethics.shared.common.Resource
 import com.jamsell.gethics.shared.common.UIState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.time.Clock
+import java.time.LocalDate
 
 class AnimalDetailViewModel(
     private val repository: LivestockRepository,
-    private val animalId: String
+    private val animalId: String,
+    // Dueno de la sesion: el backend lo pide para vender un animal que no tiene granja (US-30).
+    private val ownerId: String = Constants.DEFAULT_OWNER_ID,
+    private val clock: Clock = Clock.systemDefaultZone()
 ) : ViewModel() {
 
     // data = animal; data null -> message es el error. Mientras recarga conserva el animal anterior para no parpadear.
@@ -93,5 +99,65 @@ class AnimalDetailViewModel(
 
     fun dismissDeactivationError() {
         _deactivationError.value = null
+    }
+
+    // ---------------- US30: venta ----------------
+
+    /** true mientras se muestra el formulario de venta (precio y fecha). */
+    private val _sellingForm = mutableStateOf(false)
+    val sellingForm: State<Boolean> get() = _sellingForm
+
+    private val _saleErrors = mutableStateOf(SaleErrors())
+    val saleErrors: State<SaleErrors> get() = _saleErrors
+
+    private val _selling = mutableStateOf(false)
+    val selling: State<Boolean> get() = _selling
+
+    /** Mensaje del backend (404, 409...) o de conexion si la venta fallo; null si no hay error que mostrar. */
+    private val _saleError = mutableStateOf<String?>(null)
+    val saleError: State<String?> get() = _saleError
+
+    /** true cuando la venta se registro: la pantalla vuelve a la lista, donde el animal ya no aparece como activo. */
+    private val _sold = mutableStateOf(false)
+    val sold: State<Boolean> get() = _sold
+
+    /** Fecha que propone el formulario: hoy, en la zona horaria del dispositivo. */
+    fun defaultSaleDate(): String = LocalDate.now(clock).toString()
+
+    fun requestSale() {
+        _saleError.value = null
+        _saleErrors.value = SaleErrors()
+        _sellingForm.value = true
+    }
+
+    /** Venta cancelada: se cierra el formulario y no se llama al backend. */
+    fun cancelSale() {
+        _sellingForm.value = false
+        _saleErrors.value = SaleErrors()
+    }
+
+    /** Valida precio y fecha; si estan bien, registra la venta. Con errores el formulario sigue abierto. */
+    fun confirmSale(priceText: String, dateText: String) {
+        if (_selling.value) return
+        val animal = _state.value.data ?: return
+        val found = validateSale(priceText, dateText, LocalDate.now(clock))
+        _saleErrors.value = found
+        if (found.hasErrors) return
+        val price = parsePrice(priceText) ?: return
+        val date = parseSaleDate(dateText) ?: return
+
+        _sellingForm.value = false
+        _selling.value = true
+        viewModelScope.launch {
+            when (val result = repository.sellAnimal(animal, price, date.toString(), ownerId)) {
+                is Resource.Success -> _sold.value = true
+                is Resource.Error -> _saleError.value = result.message ?: "No se pudo registrar la venta"
+            }
+            _selling.value = false
+        }
+    }
+
+    fun dismissSaleError() {
+        _saleError.value = null
     }
 }

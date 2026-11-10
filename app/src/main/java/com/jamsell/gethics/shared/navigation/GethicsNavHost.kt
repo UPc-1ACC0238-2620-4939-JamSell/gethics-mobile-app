@@ -38,6 +38,8 @@ import com.jamsell.gethics.livestock.presentation.animal_list.AnimalListScreen
 import com.jamsell.gethics.livestock.presentation.animal_list.AnimalListViewModel
 import com.jamsell.gethics.livestock.presentation.animal_register.AnimalRegisterScreen
 import com.jamsell.gethics.livestock.presentation.animal_register.AnimalRegisterViewModel
+import com.jamsell.gethics.livestock.presentation.farm_edit.FarmEditScreen
+import com.jamsell.gethics.livestock.presentation.farm_edit.FarmEditViewModel
 import com.jamsell.gethics.sanitary.presentation.clinical_history.ClinicalHistoryScreen
 import com.jamsell.gethics.sanitary.presentation.clinical_history.ClinicalHistoryViewModel
 import com.jamsell.gethics.sanitary.presentation.register_event.RegisterEventScreen
@@ -143,10 +145,11 @@ fun GethicsNavHost(
         ) { entry ->
             val animalId = entry.arguments?.getString("animalId").orEmpty()
             AnimalDetailScreen(
-                viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository, animalId) },
+                viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository, animalId, container.sessionStorage.getOwnerId()) },
                 animalId = animalId,
                 onBack = { navController.popBackStack() },
                 onEdit = { id -> navController.navigate(Routes.animalEdit(id)) },
+                onEditFarm = { farmId -> navController.navigate(Routes.farmEdit(farmId)) },
                 onOpenClinicalHistory = { id -> navController.navigate(Routes.clinicalHistory(id)) },
                 onRegisterEvent = { id -> navController.navigate(Routes.registerEvent(id)) },
                 onScheduleVaccination = { id -> navController.navigate(Routes.scheduleVaccination(id)) }
@@ -159,6 +162,18 @@ fun GethicsNavHost(
             val animalId = entry.arguments?.getString("animalId").orEmpty()
             AnimalEditScreen(
                 viewModel = gethicsViewModel { AnimalEditViewModel(container.livestockRepository, animalId) },
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Routes.FARM_EDIT,
+            arguments = listOf(navArgument("farmId") { type = NavType.StringType })
+        ) { entry ->
+            val farmId = entry.arguments?.getString("farmId").orEmpty()
+            FarmEditScreen(
+                viewModel = gethicsViewModel { FarmEditViewModel(container.farmRepository, farmId, container.sessionStorage.getOwnerId()) },
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() }
             )

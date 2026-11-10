@@ -27,6 +27,13 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.MonitorWeight
+import androidx.compose.material.icons.outlined.QrCodeScanner
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import com.jamsell.gethics.shared.ui.components.GethicsButton
+import com.jamsell.gethics.shared.ui.components.GethicsTextField
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -123,6 +130,25 @@ fun AnimalListScreen(
     val animals = state.data
     val query = viewModel.query.value
     val status = viewModel.status.value
+    val context = LocalContext.current
+
+    // US29: al encontrar el animal por su QR se abre su ficha.
+    val qrResult = viewModel.qrResult.value
+    LaunchedEffect(qrResult) {
+        if (qrResult != null) {
+            viewModel.consumeQrResult()
+            onAnimalClick(qrResult)
+        }
+    }
+    if (viewModel.qrDialog.value) {
+        QrDialog(
+            error = viewModel.qrError.value,
+            looking = viewModel.qrLooking.value,
+            onSearch = viewModel::lookUpQr,
+            onScan = { onCode, onUnavailable -> scanQrCode(context, onCode, onUnavailable) },
+            onCancel = viewModel::closeQrDialog
+        )
+    }
 
     // La pantalla vive en el back stack: al volver del registro hay que refrescar para ver el animal nuevo.
     LifecycleResumeEffect(viewModel) {
@@ -136,7 +162,7 @@ fun AnimalListScreen(
             .background(PageBackground)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Header(total = viewModel.total.value, onOpenAlerts = onOpenAlerts, onOpenSettings = onOpenSettings)
+            Header(total = viewModel.total.value, onOpenAlerts = onOpenAlerts, onOpenSettings = onOpenSettings, onOpenQr = viewModel::openQrDialog)
             SearchRow(
                 query = query,
                 onQueryChange = viewModel::onQueryChange,
@@ -190,7 +216,7 @@ fun AnimalListScreen(
 
 /** Logo + titulo + total de animales del hato (sin "requieren atencion": no hay datos de salud) + campana de alertas. */
 @Composable
-private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?, onOpenSettings: (() -> Unit)?) {
+private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?, onOpenSettings: (() -> Unit)?, onOpenQr: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,6 +228,9 @@ private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?, onOpenSettings: (()
         Column(modifier = Modifier.weight(1f)) {
             Text(text = stringResource(R.string.livestock_title), style = TitleStyle)
             if (total != null) Text(text = pluralStringResource(R.plurals.livestock_animal_count, total, total), style = SubtitleStyle)
+        }
+        IconButton(onClick = onOpenQr) {
+            Icon(Icons.Outlined.QrCodeScanner, contentDescription = stringResource(R.string.livestock_qr_open))
         }
         if (onOpenAlerts != null) {
             // Boton del Figma (nodo 6:596): circulo blanco de 44dp con borde 1dp y campana de 20dp
@@ -229,6 +258,46 @@ private fun Header(total: Int?, onOpenAlerts: (() -> Unit)?, onOpenSettings: (()
             }
         }
     }
+}
+
+/** US29: escanear el QR del animal o escribir su codigo (GTH-...). */
+@Composable
+private fun QrDialog(
+    error: String?,
+    looking: Boolean,
+    onSearch: (String) -> Unit,
+    onScan: (onCode: (String) -> Unit, onUnavailable: () -> Unit) -> Unit,
+    onCancel: () -> Unit
+) {
+    var code by rememberSaveable { mutableStateOf("") }
+    var scanUnavailable by rememberSaveable { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.livestock_qr_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.livestock_qr_message))
+                GethicsTextField(
+                    value = code,
+                    onValueChange = { code = it },
+                    label = stringResource(R.string.livestock_qr_label),
+                    errorMessage = if (error == QR_REQUIRED_ERROR) stringResource(R.string.livestock_qr_required) else error,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                GethicsButton(
+                    text = stringResource(R.string.livestock_qr_scan),
+                    onClick = { onScan({ scanned -> code = scanned; onSearch(scanned) }, { scanUnavailable = true }) },
+                    modifier = Modifier.fillMaxWidth(),
+                    outlined = true
+                )
+                if (scanUnavailable) Text(stringResource(R.string.livestock_qr_scan_unavailable))
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSearch(code) }, enabled = !looking) { Text(stringResource(R.string.livestock_qr_search)) }
+        },
+        dismissButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.animal_cancel)) } }
+    )
 }
 
 /** Buscador por arete o raza + boton de filtro por estado. */
