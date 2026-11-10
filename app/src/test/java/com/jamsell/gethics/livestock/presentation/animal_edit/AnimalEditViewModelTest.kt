@@ -56,6 +56,8 @@ class AnimalEditViewModelTest {
         val update: (UpdateAnimalRequest) -> Response<AnimalResponse> = { error("no usado") }
     ) : LivestockService {
         override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+        override suspend fun sellAnimal(animalId: String, request: com.jamsell.gethics.livestock.data.SellAnimalRequest): Response<com.jamsell.gethics.livestock.data.AnimalSaleResponse> = error("no usado")
+        override suspend fun getAnimalByQr(code: String): Response<AnimalResponse> = error("no usado")
 
         var updates = 0
         var sent: UpdateAnimalRequest? = null

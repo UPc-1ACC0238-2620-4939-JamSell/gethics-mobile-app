@@ -48,6 +48,8 @@ class AnimalDetailDeactivationTest {
         }
 
         override suspend fun getAnimal(animalId: String): Response<AnimalResponse> = error("no usado")
+        override suspend fun sellAnimal(animalId: String, request: com.jamsell.gethics.livestock.data.SellAnimalRequest): Response<com.jamsell.gethics.livestock.data.AnimalSaleResponse> = error("no usado")
+        override suspend fun getAnimalByQr(code: String): Response<AnimalResponse> = error("no usado")
         override suspend fun updateAnimal(animalId: String, request: UpdateAnimalRequest): Response<AnimalResponse> = error("no usado")
         override suspend fun registerAnimal(request: RegisterAnimalRequest): Response<AnimalResponse> = error("no usado")
         override suspend fun getAnimals(search: String?, status: String?): Response<AnimalListResponse> = error("no usado")

@@ -1,7 +1,9 @@
 package com.jamsell.gethics.livestock.data.repository
 
+import com.jamsell.gethics.livestock.data.AnimalSaleResponse
 import com.jamsell.gethics.livestock.data.LivestockService
 import com.jamsell.gethics.livestock.data.RegisterAnimalRequest
+import com.jamsell.gethics.livestock.data.SellAnimalRequest
 import com.jamsell.gethics.livestock.data.UpdateAnimalRequest
 import com.jamsell.gethics.livestock.data.local.AnimalDao
 import com.jamsell.gethics.livestock.data.local.toAnimal
@@ -166,4 +168,46 @@ class LivestockRepository(
         } catch (e: IOException) {
             Resource.Error(CONNECTION_ERROR)
         }
+
+    /**
+     * US-30. Registra la venta en el backend y deja el animal SOLD en Room: sale de la lista de activos pero se conserva.
+     * ownerId solo se envia si el animal no tiene granja. 404/409/400: Resource.Error con el message del backend.
+     * Sin conexion devuelve error: aun no hay cola de sincronizacion para ventas hechas offline.
+     */
+    suspend fun sellAnimal(animal: Animal, price: Double, saleDate: String, ownerId: String): Resource<AnimalSaleResponse> =
+        try {
+            val request = SellAnimalRequest(price, saleDate, ownerId.takeIf { animal.farmId == null })
+            val response = service.sellAnimal(animal.id, request)
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                dao.fetchById(animal.id)?.let { dao.insert(it.copy(status = AnimalStatus.SOLD.name)) }
+                Resource.Success(body)
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    /**
+     * US-29. Animal de ese QR, guardado en Room. Sin conexion: se busca entre los animales guardados por su qr_code
+     * (Resource.Error con data si se encuentra, para poder abrirlo igual); 404: Resource.Error con el message del backend.
+     */
+    suspend fun getAnimalByQr(code: String): Resource<Animal> {
+        val normalized = code.trim()
+        return try {
+            val response = service.getAnimalByQr(normalized)
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                val animal = body.toAnimal(dao.fetchById(body.id)?.photoUrl)
+                dao.insert(animal.toEntity())
+                Resource.Success(animal)
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            val cached = dao.fetchAll().firstOrNull { it.qrCode.equals(normalized, ignoreCase = true) }?.toAnimal()
+            Resource.Error(CONNECTION_ERROR, cached)
+        }
+    }
 }

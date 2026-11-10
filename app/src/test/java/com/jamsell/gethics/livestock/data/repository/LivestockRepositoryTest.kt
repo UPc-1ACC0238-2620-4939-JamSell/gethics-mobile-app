@@ -37,6 +37,8 @@ class LivestockRepositoryTest {
 
     private class FakeService(val register: (RegisterAnimalRequest) -> Response<AnimalResponse>) : LivestockService {
         override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+        override suspend fun sellAnimal(animalId: String, request: com.jamsell.gethics.livestock.data.SellAnimalRequest): Response<com.jamsell.gethics.livestock.data.AnimalSaleResponse> = error("no usado")
+        override suspend fun getAnimalByQr(code: String): Response<AnimalResponse> = error("no usado")
 
         var sent: RegisterAnimalRequest? = null
         override suspend fun registerAnimal(request: RegisterAnimalRequest): Response<AnimalResponse> {

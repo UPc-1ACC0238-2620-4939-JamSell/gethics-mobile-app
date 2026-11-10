@@ -42,4 +42,18 @@ interface LivestockService {
      */
     @DELETE("api/v1/animals/{animalId}")
     suspend fun deactivateAnimal(@Path("animalId") animalId: String): Response<Unit>
+
+    /**
+     * US-30. Registra la venta: el animal pasa a SOLD y se crea el ingreso en Finanzas. 201 con la venta; 400 por datos
+     * invalidos, 404 si no existe y 409 si el animal ya no esta activo.
+     */
+    @POST("api/v1/animals/{animalId}/sale")
+    suspend fun sellAnimal(
+        @Path("animalId") animalId: String,
+        @Body request: SellAnimalRequest
+    ): Response<AnimalSaleResponse>
+
+    /** US-29. Busca el animal por el codigo de su QR (GTH-XXXXXXXXXXXX); 404 si ningun animal lo tiene. */
+    @GET("api/v1/animals/qr/{code}")
+    suspend fun getAnimalByQr(@Path("code") code: String): Response<AnimalResponse>
 }
