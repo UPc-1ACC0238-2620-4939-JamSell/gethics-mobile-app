@@ -22,6 +22,9 @@ class FinanceSummaryViewModel(
     private val ownerId: String
 ) : ViewModel() {
 
+    private val _actionState = mutableStateOf<String?>(null)
+    val actionState: State<String?> get() = _actionState
+
     // null = todo el historial
     private val _period = mutableStateOf<YearMonth?>(YearMonth.now())
     val period: State<YearMonth?> get() = _period
@@ -46,6 +49,30 @@ class FinanceSummaryViewModel(
         val current = _period.value ?: return
         _period.value = change(current)
         load()
+    }
+
+    /** US31: Anula un movimiento financiero por su ID y recarga el resumen */
+    fun voidMovement(movementId: Long) {
+        viewModelScope.launch {
+            _actionState.value = null
+            try {
+                // Llamamos al repositorio que sí maneja el Resource
+                val result = repository.voidFinancialMovement(movementId)
+
+                when (result) {
+                    is Resource.Success -> {
+                        _actionState.value = "Movimiento financiero anulado exitosamente"
+                        // Recargamos el resumen financiero para que refleje el cambio de inmediato
+                        load()
+                    }
+                    is Resource.Error -> {
+                        _actionState.value = result.message ?: "Error al anular movimiento"
+                    }
+                }
+            } catch (e: Exception) {
+                _actionState.value = "Excepción: ${e.localizedMessage}"
+            }
+        }
     }
 
     fun load() {
