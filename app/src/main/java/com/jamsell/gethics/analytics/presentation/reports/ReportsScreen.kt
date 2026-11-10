@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,6 +64,17 @@ fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit, onOpe
     val from = viewModel.from.value
     val to = viewModel.to.value
     var picking by rememberSaveable { mutableStateOf(PICK_NONE) }
+    val exportUi = viewModel.exportState.value
+    val context = LocalContext.current
+    val shareTitle = stringResource(R.string.reports_export_share_title)
+
+    // US39: cuando el CSV esta listo se abre el selector para compartirlo o guardarlo.
+    LaunchedEffect(exportUi.data) {
+        exportUi.data?.let {
+            shareReport(context, it, shareTitle)
+            viewModel.consumeExport()
+        }
+    }
 
     // Genera el reporte del mes actual al abrir la pantalla.
     LaunchedEffect(Unit) { viewModel.generate() }
@@ -105,6 +118,19 @@ fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit, onOpe
             onClick = viewModel::generate,
             isLoading = state.isLoading
         )
+
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(
+            onClick = viewModel::exportReport,
+            enabled = !exportUi.isLoading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                stringResource(if (exportUi.isLoading) R.string.reports_exporting else R.string.reports_export)
+            )
+        }
+        // Escenario 2 de US39: sin informacion en el periodo, el aviso del servidor se muestra tal cual
+        if (exportUi.message.isNotEmpty()) FormMessage(exportUi.message)
 
         val report = state.data
         if (report != null) {

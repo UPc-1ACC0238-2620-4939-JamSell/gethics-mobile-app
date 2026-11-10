@@ -122,6 +122,11 @@
     <string name="sanitary_calendar_type_checkup">Checkup</string>
     <string name="sanitary_calendar_type_other">Other</string>
 
+    <!-- Export report (US39) -->
+    <string name="reports_export">Export report</string>
+    <string name="reports_exporting">Exporting…</string>
+    <string name="reports_export_share_title">Share report</string>
+
     <!-- IoT devices (US23 and US37) -->
     <string name="iot_open">IoT devices</string>
     <string name="iot_title">IoT devices</string>
