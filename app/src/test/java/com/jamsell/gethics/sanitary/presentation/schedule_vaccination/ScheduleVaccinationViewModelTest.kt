@@ -5,6 +5,7 @@ import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
 import com.jamsell.gethics.sanitary.data.SanitaryService
 import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.local.FakePendingSanitaryOperationDao
 import com.jamsell.gethics.sanitary.data.repository.SanitaryRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,9 +68,28 @@ class ScheduleVaccinationViewModelTest {
         assertTrue(viewModel.state.value.isLoading)
         advanceUntilIdle()
 
-        assertEquals(listOf("animal-uuid" to ScheduleSanitaryEventRequest(SanitaryEventType.VACCINATION, "2026-10-07", "Aftosa")), service.requests)
+        val (animalId, request) = service.requests.single()
+        assertEquals("animal-uuid", animalId)
+        // US35: clientRequestId lo genera el repository
+        assertEquals(ScheduleSanitaryEventRequest(SanitaryEventType.VACCINATION, "2026-10-07", "Aftosa", request.clientRequestId), request)
         assertEquals(true, viewModel.state.value.data)
         assertFalse(viewModel.state.value.isLoading)
+        assertFalse(viewModel.savedOffline.value) // SENT
+    }
+
+    @Test
+    fun `sin conexion con cola offline se considera guardado y marca savedOffline`() = runTest(dispatcher) {
+        val dao = FakePendingSanitaryOperationDao()
+        val repository = SanitaryRepository(FakeService { throw IOException() }, dao)
+        val viewModel = ScheduleVaccinationViewModel(repository, clock)
+
+        viewModel.schedule("animal-uuid", LocalDate.of(2026, 10, 7), "Aftosa")
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.state.value.data) // la pantalla vuelve atras igual que online
+        assertEquals("", viewModel.state.value.message)
+        assertTrue(viewModel.savedOffline.value)       // QUEUED: muestra el Toast
+        assertEquals("2026-10-07", dao.rows.single().date)
     }
 
     @Test

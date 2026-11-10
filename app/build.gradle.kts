@@ -67,6 +67,9 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
+    // Sincronizacion en segundo plano (US35: cola offline de sanidad)
+    implementation(libs.work.runtime.ktx)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 

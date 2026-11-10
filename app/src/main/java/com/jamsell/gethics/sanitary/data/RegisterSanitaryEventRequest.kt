@@ -13,5 +13,6 @@ enum class SanitaryEventType(val label: String) {
 data class RegisterSanitaryEventRequest(
     val type: SanitaryEventType,
     val occurredAt: String,      // LocalDateTime ISO: yyyy-MM-dd'T'HH:mm:ss
-    val description: String?     // opcional; null no se envia
+    val description: String?,    // opcional; null no se envia
+    val clientRequestId: String  // US35: UUID que genera SanitaryRepository; el mismo en cada reintento (200 si ya existe)
 )

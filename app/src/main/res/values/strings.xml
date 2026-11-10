@@ -117,6 +117,7 @@
     <string name="sanitary_calendar_cancel_event">Cancelar evento</string>
     <string name="sanitary_calendar_cancel_confirm">¿Deseas cancelar este evento?</string>
     <string name="sanitary_calendar_cancel_keep">No, mantener</string>
+    <string name="sanitary_saved_offline">Guardado sin conexión. Se sincronizará cuando vuelva la conexión.</string>
     <string name="sanitary_calendar_type_vaccination">Vacuna</string>
     <string name="sanitary_calendar_type_treatment">Tratamiento</string>
     <string name="sanitary_calendar_type_disease">Enfermedad</string>
