@@ -29,6 +29,8 @@ class FinanceRepositoryTest {
 
         override suspend fun registerTransaction(request: RegisterTransactionRequest) = registerResult()
 
+        override suspend fun voidFinancialMovement(movementId: Long, request: com.jamsell.gethics.finance.data.VoidMovementRequest?): Response<Unit> = error("no usado")
+
         override suspend fun getSummary(ownerId: String, from: String?, to: String?): Response<FinancialSummaryResponse> {
             lastFrom = from
             lastTo = to

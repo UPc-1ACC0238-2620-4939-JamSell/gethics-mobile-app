@@ -39,6 +39,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.jamsell.gethics.R
+import com.jamsell.gethics.livestock.presentation.localizedAnimalError
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -98,10 +101,10 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.animal_back))
             }
             Text(
-                text = "Registrar Nueva Res",
+                text = stringResource(R.string.animal_register_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -115,21 +118,21 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
                 .padding(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            LabeledField("Número de Arete (Tag)") {
+            LabeledField(stringResource(R.string.animal_register_tag_label)) {
                 OutlinedTextField(
                     value = tag,
                     onValueChange = { tag = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Ej. MX-00123") },
+                    placeholder = { Text(stringResource(R.string.animal_register_tag_placeholder)) },
                     leadingIcon = { Icon(Icons.Outlined.LocalOffer, contentDescription = null) },
                     singleLine = true,
                     isError = errors.tag != null,
-                    supportingText = errors.tag?.let { { Text(it) } },
+                    supportingText = localizedAnimalError(errors.tag)?.let { { Text(it) } },
                     shape = FieldShape
                 )
             }
 
-            LabeledField("Raza") {
+            LabeledField(stringResource(R.string.animal_register_breed_label)) {
                 var expanded by rememberSaveable { mutableStateOf(false) }
                 ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
@@ -139,10 +142,10 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
                             .fillMaxWidth()
                             .menuAnchor(),
                         readOnly = true,
-                        placeholder = { Text("Selecciona una raza") },
+                        placeholder = { Text(stringResource(R.string.animal_select_breed)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         isError = errors.breed != null,
-                        supportingText = errors.breed?.let { { Text(it) } },
+                        supportingText = localizedAnimalError(errors.breed)?.let { { Text(it) } },
                         shape = FieldShape
                     )
                     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -160,7 +163,7 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                LabeledField("Fecha de Nacimiento", Modifier.weight(1f)) {
+                LabeledField(stringResource(R.string.animal_register_birth_label), Modifier.weight(1f)) {
                     // Campo de solo lectura: el toque abre el DatePicker (el clickable va sobre un Box transparente).
                     Box {
                         OutlinedTextField(
@@ -168,21 +171,21 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
                             onValueChange = {},
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
-                            placeholder = { Text("mm/dd/yyyy") },
+                            placeholder = { Text(stringResource(R.string.animal_register_birth_placeholder)) },
                             trailingIcon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
                             singleLine = true,
                             isError = errors.birthDate != null,
-                            supportingText = errors.birthDate?.let { { Text(it) } },
+                            supportingText = localizedAnimalError(errors.birthDate)?.let { { Text(it) } },
                             shape = FieldShape
                         )
                         Box(
                             Modifier
                                 .matchParentSize()
-                                .clickable(role = Role.Button, onClickLabel = "Elegir fecha") { showDatePicker = true }
+                                .clickable(role = Role.Button, onClickLabel = stringResource(R.string.animal_pick_date)) { showDatePicker = true }
                         )
                     }
                 }
-                LabeledField("Peso Inicial", Modifier.weight(1f)) {
+                LabeledField(stringResource(R.string.animal_register_weight_label), Modifier.weight(1f)) {
                     OutlinedTextField(
                         value = weight,
                         onValueChange = { weight = it },
@@ -191,14 +194,14 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
                         suffix = { Text("kg") },
                         singleLine = true,
                         isError = errors.weight != null,
-                        supportingText = errors.weight?.let { { Text(it) } },
+                        supportingText = localizedAnimalError(errors.weight)?.let { { Text(it) } },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         shape = FieldShape
                     )
                 }
             }
 
-            LabeledField("Foto") {
+            LabeledField(stringResource(R.string.animal_register_photo_label)) {
                 PhotoPicker(photoUri = photoUri, onClick = {
                     photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 })
@@ -210,7 +213,7 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
         }
 
         GethicsButton(
-            text = "Guardar Registro",
+            text = stringResource(R.string.animal_register_save),
             onClick = { viewModel.save(tag, breed, birthDate, weight, photoUri) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -235,10 +238,10 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
                         birthDate = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()
                     }
                     showDatePicker = false
-                }) { Text("Aceptar") }
+                }) { Text(stringResource(R.string.animal_accept)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.animal_cancel)) }
             }
         ) {
             DatePicker(state = pickerState)
@@ -273,14 +276,14 @@ private fun PhotoPicker(photoUri: String?, onClick: () -> Unit) {
                     style = Stroke(width = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f)))
                 )
             }
-            .clickable(role = Role.Button, onClickLabel = "Subir foto", onClick = onClick),
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.animal_register_photo_upload), onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         if (photoUri != null) {
             GlideImage(
                 imageModel = { photoUri },
                 modifier = Modifier.fillMaxSize(),
-                imageOptions = ImageOptions(contentScale = ContentScale.Crop, contentDescription = "Foto de la res")
+                imageOptions = ImageOptions(contentScale = ContentScale.Crop, contentDescription = stringResource(R.string.animal_register_photo_description))
             )
         } else {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -292,9 +295,9 @@ private fun PhotoPicker(photoUri: String?, onClick: () -> Unit) {
                 ) {
                     Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = CameraGreen)
                 }
-                Text("Subir foto de la vaca", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.animal_register_photo_title), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
                 Text(
-                    text = "Toca para tomar una foto o elegir de la galería",
+                    text = stringResource(R.string.animal_register_photo_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,

@@ -26,6 +26,23 @@ class AnimalDetailViewModel(
 
     private var loadJob: Job? = null
 
+    // ---------------- US08: baja logica ----------------
+
+    /** true mientras se muestra el dialogo "Dar de baja este animal?" (confirmar / cancelar). */
+    private val _confirmingDeactivation = mutableStateOf(false)
+    val confirmingDeactivation: State<Boolean> get() = _confirmingDeactivation
+
+    private val _deactivating = mutableStateOf(false)
+    val deactivating: State<Boolean> get() = _deactivating
+
+    /** Mensaje del backend (404, 409...) o de conexion si la baja fallo; null si no hay error que mostrar. */
+    private val _deactivationError = mutableStateOf<String?>(null)
+    val deactivationError: State<String?> get() = _deactivationError
+
+    /** true cuando la baja se confirmo: la pantalla vuelve a la lista, donde el animal ya no aparece. */
+    private val _deactivated = mutableStateOf(false)
+    val deactivated: State<Boolean> get() = _deactivated
+
     /** La pantalla lo llama al reanudarse: asi vuelve a cargar al regresar de editar. */
     fun load() {
         loadJob?.cancel()
@@ -47,5 +64,34 @@ class AnimalDetailViewModel(
                 }
             }
         }
+    }
+
+    /** Boton "Dar de baja": solo abre la confirmacion, no cambia nada todavia. */
+    fun requestDeactivation() {
+        _deactivationError.value = null
+        _confirmingDeactivation.value = true
+    }
+
+    /** Escenario 2, baja cancelada: se cierra el dialogo y el animal queda sin cambios (no se llama al backend). */
+    fun cancelDeactivation() {
+        _confirmingDeactivation.value = false
+    }
+
+    /** Escenario 1, baja confirmada: llama al backend; si sale bien, el animal pasa a INACTIVE y se avisa a la pantalla. */
+    fun confirmDeactivation() {
+        if (_deactivating.value) return
+        _confirmingDeactivation.value = false
+        _deactivating.value = true
+        viewModelScope.launch {
+            when (val result = repository.deactivateAnimal(animalId)) {
+                is Resource.Success -> _deactivated.value = true
+                is Resource.Error -> _deactivationError.value = result.message ?: "No se pudo dar de baja el animal"
+            }
+            _deactivating.value = false
+        }
+    }
+
+    fun dismissDeactivationError() {
+        _deactivationError.value = null
     }
 }

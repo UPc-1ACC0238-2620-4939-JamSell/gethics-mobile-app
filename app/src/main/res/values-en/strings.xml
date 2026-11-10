@@ -143,4 +143,74 @@
     <string name="iot_readings_title_with_code">Readings · %1$s</string>
     <string name="iot_readings_empty">This device has not reported any readings yet.</string>
     <string name="iot_readings_loading_more">Loading more readings…</string>
+
+    <!-- Animals: detail, edit, register and deactivation (US05-US08) -->
+    <string name="animal_back">Back</string>
+    <string name="animal_cancel">Cancel</string>
+    <string name="animal_accept">OK</string>
+    <string name="animal_pick_date">Pick a date</string>
+    <string name="animal_select_breed">Select a breed</string>
+    <string name="animal_select_date">Select a date</string>
+    <string name="animal_sex_male">Male</string>
+    <string name="animal_sex_female">Female</string>
+    <string name="animal_sex_unspecified">Unspecified</string>
+    <plurals name="animal_age_years">
+        <item quantity="one">%d year</item>
+        <item quantity="other">%d years</item>
+    </plurals>
+    <plurals name="animal_age_months">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <string name="animal_age_less_than_month">Less than 1 month</string>
+
+    <string name="animal_detail_photo">Animal photo</string>
+    <string name="animal_detail_edit">Edit animal</string>
+    <string name="animal_detail_profile">PROFILE</string>
+    <string name="animal_detail_general_data">General data</string>
+    <string name="animal_detail_tag">Tag ID #%1$s</string>
+    <string name="animal_detail_breed">Breed</string>
+    <string name="animal_detail_age">Age</string>
+    <string name="animal_detail_gender">Gender</string>
+    <string name="animal_detail_birth">Birth date</string>
+    <string name="animal_detail_weight">Weight</string>
+    <string name="animal_detail_weight_unset">Not recorded</string>
+    <string name="animal_detail_qr">QR code</string>
+    <string name="animal_detail_history">View clinical history</string>
+    <string name="animal_detail_register_event">Register health event</string>
+    <string name="animal_detail_schedule_vaccine">Schedule vaccination</string>
+
+    <string name="animal_deactivate_button">Deactivate animal</string>
+    <string name="animal_deactivate_title">Deactivate this animal?</string>
+    <string name="animal_deactivate_message">It will no longer appear in your active animals list. Its health and clinical history is kept and its scheduled events are cancelled.</string>
+    <string name="animal_deactivate_confirm">Deactivate</string>
+    <string name="animal_deactivate_keep">No, keep it</string>
+    <string name="animal_deactivate_error_prefix">Could not deactivate: %1$s</string>
+
+    <string name="animal_edit_title">Edit animal</string>
+    <string name="animal_edit_tag_title">Identifier / ear tag</string>
+    <string name="animal_edit_tag_hint">The ear tag identifies the animal and cannot be changed.</string>
+    <string name="animal_edit_name_title">Name (optional)</string>
+    <string name="animal_edit_name_placeholder">E.g. Luna</string>
+    <string name="animal_edit_breed_title">Breed</string>
+    <string name="animal_edit_birth_title">Birth date</string>
+    <string name="animal_edit_sex_title">Sex</string>
+    <string name="animal_edit_save">Save changes</string>
+
+    <string name="animal_register_title">Register New Animal</string>
+    <string name="animal_register_tag_label">Ear Tag Number</string>
+    <string name="animal_register_tag_placeholder">E.g. MX-00123</string>
+    <string name="animal_register_breed_label">Breed</string>
+    <string name="animal_register_birth_label">Date of Birth</string>
+    <string name="animal_register_birth_placeholder">mm/dd/yyyy</string>
+    <string name="animal_register_weight_label">Initial Weight</string>
+    <string name="animal_register_photo_label">Photo</string>
+    <string name="animal_register_photo_description">Animal photo</string>
+    <string name="animal_register_photo_upload">Upload photo</string>
+    <string name="animal_register_photo_title">Upload a photo of the cow</string>
+    <string name="animal_register_photo_hint">Tap to take a photo or pick one from the gallery</string>
+    <string name="animal_register_save">Save Record</string>
+    <string name="animal_error_required">This field is required</string>
+    <string name="animal_error_future_birth">The birth date cannot be in the future</string>
+    <string name="animal_error_invalid_weight">Enter a weight greater than 0</string>
 </resources>

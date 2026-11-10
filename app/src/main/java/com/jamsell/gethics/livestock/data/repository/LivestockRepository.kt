@@ -148,4 +148,22 @@ class LivestockRepository(
         } catch (e: IOException) {
             Resource.Error(CONNECTION_ERROR)
         }
+
+    /**
+     * US08, escenario 1. Da de baja el animal en el backend y lo marca INACTIVE en Room: deja de salir en la lista de
+     * activos, pero su registro se conserva (el backend tambien conserva su historial). 404/409: Resource.Error con el
+     * message del backend. Sin conexion devuelve error: aun no hay cola de sincronizacion para bajas hechas offline.
+     */
+    suspend fun deactivateAnimal(id: String): Resource<Unit> =
+        try {
+            val response = service.deactivateAnimal(id)
+            if (response.isSuccessful) {
+                dao.fetchById(id)?.let { dao.insert(it.copy(status = AnimalStatus.INACTIVE.name)) }
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
 }

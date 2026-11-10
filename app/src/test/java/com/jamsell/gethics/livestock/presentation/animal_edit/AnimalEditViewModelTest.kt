@@ -55,6 +55,8 @@ class AnimalEditViewModelTest {
         val get: () -> Response<AnimalResponse>,
         val update: (UpdateAnimalRequest) -> Response<AnimalResponse> = { error("no usado") }
     ) : LivestockService {
+        override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+
         var updates = 0
         var sent: UpdateAnimalRequest? = null
 

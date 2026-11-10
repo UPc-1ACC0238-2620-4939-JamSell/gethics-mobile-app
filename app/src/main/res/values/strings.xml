@@ -145,4 +145,76 @@
     <string name="iot_readings_title_with_code">Lecturas · %1$s</string>
     <string name="iot_readings_empty">Este dispositivo aún no ha reportado lecturas.</string>
     <string name="iot_readings_loading_more">Cargando más lecturas…</string>
+
+    <!-- Animales: ficha, edición, registro y baja (US05-US08) -->
+    <string name="animal_back">Volver</string>
+    <string name="animal_cancel">Cancelar</string>
+    <string name="animal_accept">Aceptar</string>
+    <string name="animal_pick_date">Elegir fecha</string>
+    <string name="animal_select_breed">Selecciona una raza</string>
+    <string name="animal_select_date">Selecciona una fecha</string>
+    <string name="animal_sex_male">Macho</string>
+    <string name="animal_sex_female">Hembra</string>
+    <string name="animal_sex_unspecified">Sin especificar</string>
+    <plurals name="animal_age_years">
+        <item quantity="one">%d año</item>
+        <item quantity="many">%d años</item>
+        <item quantity="other">%d años</item>
+    </plurals>
+    <plurals name="animal_age_months">
+        <item quantity="one">%d mes</item>
+        <item quantity="many">%d meses</item>
+        <item quantity="other">%d meses</item>
+    </plurals>
+    <string name="animal_age_less_than_month">Menos de 1 mes</string>
+
+    <string name="animal_detail_photo">Foto del animal</string>
+    <string name="animal_detail_edit">Editar animal</string>
+    <string name="animal_detail_profile">PERFIL</string>
+    <string name="animal_detail_general_data">Datos generales</string>
+    <string name="animal_detail_tag">Tag ID #%1$s</string>
+    <string name="animal_detail_breed">Raza</string>
+    <string name="animal_detail_age">Edad</string>
+    <string name="animal_detail_gender">Género</string>
+    <string name="animal_detail_birth">Nacimiento</string>
+    <string name="animal_detail_weight">Peso</string>
+    <string name="animal_detail_weight_unset">Sin registrar</string>
+    <string name="animal_detail_qr">Código QR</string>
+    <string name="animal_detail_history">Ver historial clínico</string>
+    <string name="animal_detail_register_event">Registrar evento sanitario</string>
+    <string name="animal_detail_schedule_vaccine">Programar vacuna</string>
+
+    <string name="animal_deactivate_button">Dar de baja</string>
+    <string name="animal_deactivate_title">¿Dar de baja este animal?</string>
+    <string name="animal_deactivate_message">Dejará de aparecer en tu lista de animales activos. Su historial sanitario y clínico se conserva y sus eventos programados se cancelan.</string>
+    <string name="animal_deactivate_confirm">Dar de baja</string>
+    <string name="animal_deactivate_keep">No, mantener</string>
+    <string name="animal_deactivate_error_prefix">No se pudo dar de baja: %1$s</string>
+
+    <string name="animal_edit_title">Editar animal</string>
+    <string name="animal_edit_tag_title">Identificador / arete</string>
+    <string name="animal_edit_tag_hint">El arete identifica al animal y no se puede cambiar.</string>
+    <string name="animal_edit_name_title">Nombre (opcional)</string>
+    <string name="animal_edit_name_placeholder">Ej. Luna</string>
+    <string name="animal_edit_breed_title">Raza</string>
+    <string name="animal_edit_birth_title">Nacimiento</string>
+    <string name="animal_edit_sex_title">Sexo</string>
+    <string name="animal_edit_save">Guardar cambios</string>
+
+    <string name="animal_register_title">Registrar Nueva Res</string>
+    <string name="animal_register_tag_label">Número de Arete (Tag)</string>
+    <string name="animal_register_tag_placeholder">Ej. MX-00123</string>
+    <string name="animal_register_breed_label">Raza</string>
+    <string name="animal_register_birth_label">Fecha de Nacimiento</string>
+    <string name="animal_register_birth_placeholder">mm/dd/yyyy</string>
+    <string name="animal_register_weight_label">Peso Inicial</string>
+    <string name="animal_register_photo_label">Foto</string>
+    <string name="animal_register_photo_description">Foto de la res</string>
+    <string name="animal_register_photo_upload">Subir foto</string>
+    <string name="animal_register_photo_title">Subir foto de la vaca</string>
+    <string name="animal_register_photo_hint">Toca para tomar una foto o elegir de la galería</string>
+    <string name="animal_register_save">Guardar Registro</string>
+    <string name="animal_error_required">Este campo es obligatorio</string>
+    <string name="animal_error_future_birth">La fecha de nacimiento no puede ser futura</string>
+    <string name="animal_error_invalid_weight">Ingresa un peso mayor a 0</string>
 </resources>

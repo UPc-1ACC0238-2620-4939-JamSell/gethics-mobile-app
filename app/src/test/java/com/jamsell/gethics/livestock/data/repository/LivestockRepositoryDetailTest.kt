@@ -38,6 +38,8 @@ class LivestockRepositoryDetailTest {
         val get: () -> Response<AnimalResponse> = { error("no usado") },
         val update: (UpdateAnimalRequest) -> Response<AnimalResponse> = { error("no usado") }
     ) : LivestockService {
+        override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+
         var requestedId: String? = null
         var updatedId: String? = null
         var sent: UpdateAnimalRequest? = null

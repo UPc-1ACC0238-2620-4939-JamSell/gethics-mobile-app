@@ -28,17 +28,21 @@ import androidx.compose.material.icons.outlined.Male
 import androidx.compose.material.icons.outlined.MonitorWeight
 import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.QrCode2
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,10 +51,14 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.domain.model.AnimalSex
+import com.jamsell.gethics.livestock.domain.model.AnimalStatus
 import com.jamsell.gethics.livestock.presentation.NO_DATA
+import com.jamsell.gethics.livestock.presentation.ageText
 import com.jamsell.gethics.livestock.presentation.formatAge
-import com.jamsell.gethics.livestock.presentation.formatBirthDate
 import com.jamsell.gethics.livestock.presentation.sexLabel
+import com.jamsell.gethics.livestock.presentation.formatBirthDate
+import com.jamsell.gethics.livestock.presentation.sexText
+import com.jamsell.gethics.livestock.presentation.summaryText
 import com.jamsell.gethics.livestock.presentation.animal_list.formatWeight
 import com.jamsell.gethics.shared.ui.components.AlertBanner
 import com.jamsell.gethics.shared.ui.components.ErrorMessage
@@ -100,10 +108,20 @@ fun AnimalDetailScreen(
     onEdit: (String) -> Unit,
     onOpenClinicalHistory: (String) -> Unit,
     onRegisterEvent: (String) -> Unit,
-    onScheduleVaccination: (String) -> Unit
+    onScheduleVaccination: (String) -> Unit,
+    onDeactivated: () -> Unit = onBack
 ) {
     val state = viewModel.state.value
     val animal = state.data
+
+    // US08: cuando la baja se confirma, la pantalla vuelve a la lista (donde el animal ya no aparece).
+    LaunchedEffect(viewModel.deactivated.value) {
+        if (viewModel.deactivated.value) onDeactivated()
+    }
+
+    if (viewModel.confirmingDeactivation.value) {
+        DeactivateDialog(onConfirm = viewModel::confirmDeactivation, onCancel = viewModel::cancelDeactivation)
+    }
 
     // La pantalla vive en el back stack: al volver de editar hay que recargar para ver los cambios.
     LifecycleResumeEffect(viewModel) {
@@ -125,7 +143,7 @@ fun AnimalDetailScreen(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(16.dp)
-                ) { Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = "Volver", modifier = Modifier.size(20.dp), tint = TextPrimary) }
+                ) { Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.animal_back), modifier = Modifier.size(20.dp), tint = TextPrimary) }
             }
             else -> Column(
                 modifier = Modifier
@@ -138,30 +156,43 @@ fun AnimalDetailScreen(
 
                 Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (viewModel.offline.value) {
-                        AlertBanner(text = "Sin conexión: mostrando los datos guardados")
+                        AlertBanner(text = stringResource(R.string.livestock_offline))
                     }
-                    Text(text = "PERFIL", style = SectionLabelStyle)
-                    Text(text = "Datos generales", style = SectionTitleStyle)
+                    Text(text = stringResource(R.string.animal_detail_profile), style = SectionLabelStyle)
+                    Text(text = stringResource(R.string.animal_detail_general_data), style = SectionTitleStyle)
                     GeneralData(animal = animal, today = LocalDate.now())
 
                     Spacer(Modifier.height(4.dp))
                     GethicsButton(
-                        text = "Ver historial clínico",
+                        text = stringResource(R.string.animal_detail_history),
                         onClick = { onOpenClinicalHistory(animalId) },
                         modifier = Modifier.fillMaxWidth(),
                         outlined = true
                     )
                     GethicsButton(
-                        text = "Registrar evento sanitario",
+                        text = stringResource(R.string.animal_detail_register_event),
                         onClick = { onRegisterEvent(animalId) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     GethicsButton(
-                        text = "Programar vacuna",
+                        text = stringResource(R.string.animal_detail_schedule_vaccine),
                         onClick = { onScheduleVaccination(animalId) },
                         modifier = Modifier.fillMaxWidth(),
                         outlined = true
                     )
+                    viewModel.deactivationError.value?.let { error ->
+                        AlertBanner(text = stringResource(R.string.animal_deactivate_error_prefix, error))
+                    }
+                    if (animal.status == null || animal.status == AnimalStatus.ACTIVE.name) {
+                        GethicsButton(
+                            text = stringResource(R.string.animal_deactivate_button),
+                            onClick = viewModel::requestDeactivation,
+                            modifier = Modifier.fillMaxWidth(),
+                            outlined = true,
+                            isLoading = viewModel.deactivating.value,
+                            border = BorderStroke(1.dp, DangerColor)
+                        )
+                    }
                     Spacer(Modifier.height(16.dp))
                 }
             }
@@ -186,7 +217,7 @@ private fun Hero(animal: Animal, onBack: () -> Unit, onEdit: () -> Unit) {
                 GlideImage(
                     imageModel = { animal.photoUrl },
                     modifier = Modifier.fillMaxSize(),
-                    imageOptions = ImageOptions(contentScale = ContentScale.Crop, contentDescription = "Foto del animal"),
+                    imageOptions = ImageOptions(contentScale = ContentScale.Crop, contentDescription = stringResource(R.string.animal_detail_photo)),
                     failure = { GethicsLogoMark(size = 120.dp, shape = CircleShape) }
                 )
             }
@@ -197,13 +228,13 @@ private fun Hero(animal: Animal, onBack: () -> Unit, onEdit: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
-        ) { Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = "Volver", modifier = Modifier.size(20.dp), tint = TextPrimary) }
+        ) { Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.animal_back), modifier = Modifier.size(20.dp), tint = TextPrimary) }
         RoundIconButton(
             onClick = onEdit,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
-        ) { Icon(Icons.Outlined.Edit, contentDescription = "Editar animal", modifier = Modifier.size(20.dp), tint = TextPrimary) }
+        ) { Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.animal_detail_edit), modifier = Modifier.size(20.dp), tint = TextPrimary) }
 
         Surface(
             modifier = Modifier
@@ -215,9 +246,9 @@ private fun Hero(animal: Animal, onBack: () -> Unit, onEdit: () -> Unit) {
             shadowElevation = 6.dp
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
-                Text(text = summaryLine(animal, LocalDate.now()), style = SummaryLineStyle)
+                Text(text = summaryText(animal, LocalDate.now()), style = SummaryLineStyle)
                 Spacer(Modifier.height(8.dp))
-                Text(text = "Tag ID #${animal.tag}", style = TagStyle)
+                Text(text = stringResource(R.string.animal_detail_tag, animal.tag), style = TagStyle)
             }
         }
     }
@@ -235,12 +266,12 @@ private fun RoundIconButton(onClick: () -> Unit, modifier: Modifier = Modifier, 
 private fun GeneralData(animal: Animal, today: LocalDate) {
     val genderIcon = if (animal.sex == AnimalSex.MALE.name) Icons.Outlined.Male else Icons.Outlined.Female
     val tiles = listOf(
-        Tile(Icons.Outlined.Pets, "Raza", animal.breed),
-        Tile(Icons.Outlined.CalendarMonth, "Edad", formatAge(animal.birthDate, today)),
-        Tile(genderIcon, "Género", sexLabel(animal.sex)),
-        Tile(Icons.Outlined.Event, "Nacimiento", formatBirthDate(animal.birthDate)),
-        Tile(Icons.Outlined.MonitorWeight, "Peso", animal.weightKg?.let { "${formatWeight(it)} kg" } ?: "Sin registrar"),
-        Tile(Icons.Outlined.QrCode2, "Código QR", animal.qrCode ?: NO_DATA)
+        Tile(Icons.Outlined.Pets, stringResource(R.string.animal_detail_breed), animal.breed),
+        Tile(Icons.Outlined.CalendarMonth, stringResource(R.string.animal_detail_age), ageText(animal.birthDate, today)),
+        Tile(genderIcon, stringResource(R.string.animal_detail_gender), sexText(animal.sex)),
+        Tile(Icons.Outlined.Event, stringResource(R.string.animal_detail_birth), formatBirthDate(animal.birthDate)),
+        Tile(Icons.Outlined.MonitorWeight, stringResource(R.string.animal_detail_weight), animal.weightKg?.let { "${formatWeight(it)} kg" } ?: stringResource(R.string.animal_detail_weight_unset)),
+        Tile(Icons.Outlined.QrCode2, stringResource(R.string.animal_detail_qr), animal.qrCode ?: NO_DATA)
     )
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         tiles.chunked(2).forEach { row ->
@@ -265,4 +296,24 @@ private fun InfoTile(tile: Tile, modifier: Modifier = Modifier) {
             Text(text = tile.value, style = TileValueStyle)
         }
     }
+}
+
+private val DangerColor = Color(0xFFB3261E)
+
+/** US08: confirmacion de la baja. "Cancelar" cierra el dialogo sin llamar al backend (escenario 2). */
+@Composable
+private fun DeactivateDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.animal_deactivate_title)) },
+        text = { Text(stringResource(R.string.animal_deactivate_message)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.animal_deactivate_confirm), color = DangerColor)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) { Text(stringResource(R.string.animal_deactivate_keep)) }
+        }
+    )
 }

@@ -44,6 +44,8 @@ class AnimalDetailViewModelTest {
     )
 
     private class FakeService(val get: () -> Response<AnimalResponse>) : LivestockService {
+        override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+
         var calls = 0
         override suspend fun getAnimal(animalId: String): Response<AnimalResponse> {
             calls++

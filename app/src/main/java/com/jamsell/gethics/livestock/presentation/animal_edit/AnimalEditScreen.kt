@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +50,8 @@ import androidx.compose.ui.unit.sp
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.domain.model.AnimalSex
-import com.jamsell.gethics.livestock.presentation.NO_SEX
+import com.jamsell.gethics.livestock.presentation.localizedAnimalError
+import com.jamsell.gethics.livestock.presentation.sexText
 import com.jamsell.gethics.livestock.presentation.animal_register.ANIMAL_BREEDS
 import com.jamsell.gethics.livestock.presentation.formatBirthDate
 import com.jamsell.gethics.shared.common.UIState
@@ -100,10 +102,10 @@ fun AnimalEditScreen(viewModel: AnimalEditViewModel, onBack: () -> Unit, onSaved
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = "Volver", modifier = Modifier.size(20.dp), tint = TextPrimary)
+                Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.animal_back), modifier = Modifier.size(20.dp), tint = TextPrimary)
             }
             Spacer(Modifier.width(8.dp))
-            Text(text = "Editar animal", style = TitleStyle)
+            Text(text = stringResource(R.string.animal_edit_title), style = TitleStyle)
         }
 
         when {
@@ -146,17 +148,17 @@ private fun EditForm(
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FieldCard(title = "Identificador / arete") {
+        FieldCard(title = stringResource(R.string.animal_edit_tag_title)) {
             Text(text = animal.tag, style = FieldValueStyle)
-            Text(text = "El arete identifica al animal y no se puede cambiar.", style = FieldValueStyle)
+            Text(text = stringResource(R.string.animal_edit_tag_hint), style = FieldValueStyle)
         }
 
-        FieldCard(title = "Nombre (opcional)") {
+        FieldCard(title = stringResource(R.string.animal_edit_name_title)) {
             TextField(
                 value = name,
                 onValueChange = { name = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Ej. Luna") },
+                placeholder = { Text(stringResource(R.string.animal_edit_name_placeholder)) },
                 singleLine = true,
                 colors = transparentFieldColors()
             )
@@ -164,27 +166,27 @@ private fun EditForm(
 
         // Si la raza guardada no esta en el catalogo del selector, se agrega para no perderla al abrir el formulario.
         DropdownCard(
-            title = "Raza",
+            title = stringResource(R.string.animal_edit_breed_title),
             selectedLabel = breed,
-            placeholder = "Selecciona una raza",
+            placeholder = stringResource(R.string.animal_select_breed),
             options = (ANIMAL_BREEDS + animal.breed).distinct().map { it to it },
             onSelect = { breed = it },
-            error = errors.breed
+            error = localizedAnimalError(errors.breed)
         )
 
         FieldCard(
-            title = "Nacimiento",
-            error = errors.birthDate,
-            modifier = Modifier.clickable(role = Role.Button, onClickLabel = "Elegir fecha") { showDatePicker = true }
+            title = stringResource(R.string.animal_edit_birth_title),
+            error = localizedAnimalError(errors.birthDate),
+            modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.animal_pick_date)) { showDatePicker = true }
         ) {
-            Text(text = birthDate?.toString()?.let(::formatBirthDate) ?: "Selecciona una fecha", style = FieldValueStyle)
+            Text(text = birthDate?.toString()?.let(::formatBirthDate) ?: stringResource(R.string.animal_select_date), style = FieldValueStyle)
         }
 
         DropdownCard(
-            title = "Sexo",
-            selectedLabel = AnimalSex.entries.firstOrNull { it.name == sex }?.label.orEmpty(),
-            placeholder = NO_SEX,
-            options = AnimalSex.entries.map { it.label to it.name },
+            title = stringResource(R.string.animal_edit_sex_title),
+            selectedLabel = AnimalSex.entries.firstOrNull { it.name == sex }?.let { sexText(it.name) }.orEmpty(),
+            placeholder = stringResource(R.string.animal_sex_unspecified),
+            options = AnimalSex.entries.map { sexText(it.name) to it.name },
             onSelect = { sex = it }
         )
 
@@ -193,7 +195,7 @@ private fun EditForm(
         }
 
         GethicsButton(
-            text = "Guardar cambios",
+            text = stringResource(R.string.animal_edit_save),
             onClick = { onSave(name, breed, sex, birthDate) },
             modifier = Modifier.fillMaxWidth(),
             isLoading = saveState.isLoading,
@@ -201,7 +203,7 @@ private fun EditForm(
         )
         // Escenario 2: Cancelar descarta los cambios y vuelve a la vista anterior.
         GethicsButton(
-            text = "Cancelar",
+            text = stringResource(R.string.animal_cancel),
             onClick = onCancel,
             modifier = Modifier.fillMaxWidth(),
             outlined = true,
@@ -225,10 +227,10 @@ private fun EditForm(
                         birthDate = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()
                     }
                     showDatePicker = false
-                }) { Text("Aceptar") }
+                }) { Text(stringResource(R.string.animal_accept)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.animal_cancel)) }
             }
         ) {
             DatePicker(state = pickerState)
