@@ -1,14 +1,34 @@
 package com.jamsell.gethics.veterinary.presentation.assigned_clients
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.jamsell.gethics.veterinary.data.repository.VeterinaryRepository
-import com.jamsell.gethics.shared.common.UIState
+import androidx.lifecycle.viewModelScope
+// Asegúrate de que esta ruta coincida exactamente con la ubicación de tu archivo VeterinaryService
+import com.jamsell.gethics.veterinary.data.VeterinaryService
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import java.util.UUID
 
-class AssignedClientsViewModel(private val repository: VeterinaryRepository) : ViewModel() {
+class AssignedClientsViewModel(
+    private val veterinaryService: VeterinaryService
+) : ViewModel() {
 
-    // TODO: cambiar Unit por el tipo real (ej. List<Animal>) y agregar las funciones de la pantalla
-    private val _state = mutableStateOf(UIState<Unit>())
-    val state: State<UIState<Unit>> get() = _state
+    private val _uiState = MutableStateFlow<String?>(null)
+    val uiState: StateFlow<String?> = _uiState
+
+    fun unassignClient(assignmentId: UUID) {
+        viewModelScope.launch {
+            try {
+                val response = veterinaryService.unassignClient(assignmentId)
+                if (response.isSuccessful) {
+                    _uiState.value = "Cliente desvinculado exitosamente"
+                } else {
+                    _uiState.value = "Error al desvincular: ${response.code()}"
+                }
+            } catch (e: Exception) {
+                _uiState.value = "Excepción: ${e.localizedMessage}"
+            }
+        }
+    }
 }
+
