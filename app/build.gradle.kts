@@ -70,6 +70,9 @@ dependencies {
     // Sincronizacion en segundo plano (US35: cola offline de sanidad)
     implementation(libs.work.runtime.ktx)
 
+    // US29: escaner de QR (Google code scanner, sin permiso de camara)
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 

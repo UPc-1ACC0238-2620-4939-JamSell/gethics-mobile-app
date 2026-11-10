@@ -213,4 +213,39 @@
     <string name="animal_error_required">This field is required</string>
     <string name="animal_error_future_birth">The birth date cannot be in the future</string>
     <string name="animal_error_invalid_weight">Enter a weight greater than 0</string>
+
+    <!-- Sale, QR and farm edit (US-29, US-30, US-32) -->
+    <string name="animal_sale_button">Register sale</string>
+    <string name="animal_sale_title">Register the sale</string>
+    <string name="animal_sale_message">The animal will be marked as sold and the income will be recorded in your finances. Its history is kept.</string>
+    <string name="animal_sale_price_label">Sale price</string>
+    <string name="animal_sale_date_label">Sale date</string>
+    <string name="animal_sale_date_hint">Format yyyy-mm-dd</string>
+    <string name="animal_sale_confirm">Sell</string>
+    <string name="animal_sale_error_price">The price must be greater than 0 (up to 2 decimals)</string>
+    <string name="animal_sale_error_date">Enter a valid date (yyyy-mm-dd)</string>
+    <string name="animal_sale_error_future">The sale date cannot be in the future</string>
+    <string name="animal_sale_error_prefix">Could not register the sale: %1$s</string>
+    <string name="animal_detail_edit_farm">Edit farm</string>
+
+    <string name="livestock_qr_open">Find by QR</string>
+    <string name="livestock_qr_title">Find by QR code</string>
+    <string name="livestock_qr_message">Scan the animal\'s QR or type its code.</string>
+    <string name="livestock_qr_label">QR code (GTH-…)</string>
+    <string name="livestock_qr_scan">Scan QR</string>
+    <string name="livestock_qr_search">Search</string>
+    <string name="livestock_qr_required">Scan or type the QR code</string>
+    <string name="livestock_qr_scan_unavailable">The scanner is not available on this device. Type the code.</string>
+
+    <string name="farm_edit_title">Edit farm</string>
+    <string name="farm_name_label">Farm name</string>
+    <string name="farm_location_label">Location</string>
+    <string name="farm_size_label">Size (hectares)</string>
+    <string name="farm_size_hint">Optional. Up to 2 decimals.</string>
+    <string name="farm_edit_save">Save changes</string>
+    <string name="farm_error_name_required">The farm name is required</string>
+    <string name="farm_error_name_too_long">The name cannot exceed 100 characters</string>
+    <string name="farm_error_location_required">The location is required</string>
+    <string name="farm_error_location_too_long">The location cannot exceed 200 characters</string>
+    <string name="farm_error_size_invalid">The size must be greater than 0 (up to 2 decimals)</string>
 </resources>

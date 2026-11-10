@@ -217,4 +217,39 @@
     <string name="animal_error_required">Este campo es obligatorio</string>
     <string name="animal_error_future_birth">La fecha de nacimiento no puede ser futura</string>
     <string name="animal_error_invalid_weight">Ingresa un peso mayor a 0</string>
+
+    <!-- Venta, QR y edición de granja (US-29, US-30, US-32) -->
+    <string name="animal_sale_button">Registrar venta</string>
+    <string name="animal_sale_title">Registrar la venta</string>
+    <string name="animal_sale_message">El animal pasará a vendido y se registrará el ingreso en tus finanzas. Su historial se conserva.</string>
+    <string name="animal_sale_price_label">Precio de venta</string>
+    <string name="animal_sale_date_label">Fecha de venta</string>
+    <string name="animal_sale_date_hint">Formato aaaa-mm-dd</string>
+    <string name="animal_sale_confirm">Vender</string>
+    <string name="animal_sale_error_price">El precio debe ser mayor a 0 (hasta 2 decimales)</string>
+    <string name="animal_sale_error_date">Ingresa una fecha válida (aaaa-mm-dd)</string>
+    <string name="animal_sale_error_future">La fecha de venta no puede ser futura</string>
+    <string name="animal_sale_error_prefix">No se pudo registrar la venta: %1$s</string>
+    <string name="animal_detail_edit_farm">Editar granja</string>
+
+    <string name="livestock_qr_open">Buscar por QR</string>
+    <string name="livestock_qr_title">Buscar por código QR</string>
+    <string name="livestock_qr_message">Escanea el QR del animal o escribe su código.</string>
+    <string name="livestock_qr_label">Código QR (GTH-…)</string>
+    <string name="livestock_qr_scan">Escanear QR</string>
+    <string name="livestock_qr_search">Buscar</string>
+    <string name="livestock_qr_required">Escanea o escribe el código QR</string>
+    <string name="livestock_qr_scan_unavailable">El escáner no está disponible en este dispositivo. Escribe el código.</string>
+
+    <string name="farm_edit_title">Editar granja</string>
+    <string name="farm_name_label">Nombre de la granja</string>
+    <string name="farm_location_label">Ubicación</string>
+    <string name="farm_size_label">Tamaño (hectáreas)</string>
+    <string name="farm_size_hint">Opcional. Hasta 2 decimales.</string>
+    <string name="farm_edit_save">Guardar cambios</string>
+    <string name="farm_error_name_required">El nombre de la granja es obligatorio</string>
+    <string name="farm_error_name_too_long">El nombre no puede superar 100 caracteres</string>
+    <string name="farm_error_location_required">La ubicación es obligatoria</string>
+    <string name="farm_error_location_too_long">La ubicación no puede superar 200 caracteres</string>
+    <string name="farm_error_size_invalid">El tamaño debe ser mayor a 0 (hasta 2 decimales)</string>
 </resources>
