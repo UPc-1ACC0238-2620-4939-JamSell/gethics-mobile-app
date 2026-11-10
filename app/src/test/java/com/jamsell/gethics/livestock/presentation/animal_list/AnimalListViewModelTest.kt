@@ -48,6 +48,8 @@ class AnimalListViewModelTest {
 
     /** Responde con la funcion recibida y registra cada (search, status) pedido. */
     private class FakeService(val list: (String?, String?) -> Response<AnimalListResponse>) : LivestockService {
+        override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+
         val requests = mutableListOf<Pair<String?, String?>>()
         override suspend fun getAnimals(search: String?, status: String?): Response<AnimalListResponse> {
             requests += search to status

@@ -21,6 +21,8 @@ class AnimalRegisterViewModelTest {
     private val today = LocalDate.of(2026, 10, 5)
 
     private class CountingService : LivestockService {
+        override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+
         var calls = 0
         override suspend fun registerAnimal(request: RegisterAnimalRequest): Response<AnimalResponse> {
             calls++

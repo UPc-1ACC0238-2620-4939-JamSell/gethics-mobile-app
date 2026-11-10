@@ -2,6 +2,7 @@ package com.jamsell.gethics.livestock.data
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -34,4 +35,11 @@ interface LivestockService {
         @Path("animalId") animalId: String,
         @Body request: UpdateAnimalRequest
     ): Response<AnimalResponse>
+
+    /**
+     * US08. Baja logica (no borra el animal ni su historial). 204 sin cuerpo; 404 si no existe y 409 si el animal ya no
+     * esta activo (baja, vendido o fallecido).
+     */
+    @DELETE("api/v1/animals/{animalId}")
+    suspend fun deactivateAnimal(@Path("animalId") animalId: String): Response<Unit>
 }

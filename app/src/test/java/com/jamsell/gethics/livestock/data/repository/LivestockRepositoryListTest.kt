@@ -31,6 +31,8 @@ class LivestockRepositoryListTest {
         AnimalEntity(id, tag, tag, "Holstein", photoUrl, "2024-03-01", 420.5, "GTH-$tag", status)
 
     private class FakeService(val list: (String?, String?) -> Response<AnimalListResponse>) : LivestockService {
+        override suspend fun deactivateAnimal(animalId: String): Response<Unit> = error("no usado")
+
         var searchSent: String? = "no llamado"
         var statusSent: String? = "no llamado"
         override suspend fun getAnimals(search: String?, status: String?): Response<AnimalListResponse> {
