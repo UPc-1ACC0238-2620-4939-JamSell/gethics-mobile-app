@@ -38,6 +38,18 @@ interface SanitaryService {
         @Body request: CompleteSanitaryEventRequest
     ): Response<Unit>
 
+    /**
+     * US33. Cancela un evento sanitario programado.
+     * El backend responde con el evento actualizado, pero Mobile no necesita consumir
+     * el body: después del éxito se recarga el calendario y el servidor sigue siendo
+     * la fuente de verdad.
+     */
+    @POST("api/v1/animals/{animalId}/sanitary-events/{eventId}/cancel")
+    suspend fun cancelEvent(
+        @Path("animalId") animalId: String,
+        @Path("eventId") eventId: String
+    ): Response<Unit>
+
     /** US14. Historial completo del animal; un UUID sin eventos (o inexistente) responde 200 con "Sin registros.". */
     @GET("api/v1/animals/{animalId}/clinical-history")
     suspend fun getClinicalHistory(@Path("animalId") animalId: String): Response<ClinicalHistoryResponse>

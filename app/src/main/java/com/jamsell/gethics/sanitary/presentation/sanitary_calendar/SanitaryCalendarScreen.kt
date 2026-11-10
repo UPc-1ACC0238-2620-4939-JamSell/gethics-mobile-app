@@ -39,7 +39,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -127,6 +129,9 @@ fun SanitaryCalendarScreen(
     val actionMessage = viewModel.actionMessage.value
     // US13: vacunacion cuya fecha de aplicacion se esta eligiendo (null = dialogo cerrado)
     var eventToComplete by remember { mutableStateOf<ScheduledEventDto?>(null) }
+    // US33: evento cuya cancelacion se esta confirmando (null = dialogo cerrado)
+    var eventToCancel by remember { mutableStateOf<ScheduledEventDto?>(null) }
+    val busy = completing || viewModel.cancelling.value
 
     Column(
         modifier = Modifier
@@ -171,7 +176,11 @@ fun SanitaryCalendarScreen(
                         onComplete = if (event.type == SanitaryEventType.VACCINATION && event.status == "SCHEDULED") {
                             { eventToComplete = event }
                         } else null,
-                        completing = completing
+                        // US33: cualquier evento pendiente (SCHEDULED) puede cancelarse
+                        onCancel = if (event.status == "SCHEDULED") {
+                            { eventToCancel = event }
+                        } else null,
+                        busy = busy
                     )
                 }
             }
@@ -184,6 +193,23 @@ fun SanitaryCalendarScreen(
             onConfirm = { appliedOn ->
                 eventToComplete = null
                 viewModel.completeVaccination(event, appliedOn)
+            }
+        )
+    }
+
+    // US33: confirmacion para evitar una cancelacion por un toque accidental
+    eventToCancel?.let { event ->
+        AlertDialog(
+            onDismissRequest = { eventToCancel = null },
+            title = { Text(stringResource(R.string.sanitary_calendar_cancel_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    eventToCancel = null
+                    viewModel.cancelEvent(event)
+                }) { Text(stringResource(R.string.sanitary_calendar_cancel_event)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { eventToCancel = null }) { Text(stringResource(R.string.sanitary_calendar_cancel_keep)) }
             }
         )
     }
@@ -228,7 +254,7 @@ private fun MonthButton(rotation: Float, description: String, onClick: () -> Uni
  * scheduledDate: el backend no entrega hora), titulo = tipo y subtitulo = descripcion si existe. Sin animalId.
  */
 @Composable
-private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit)?, completing: Boolean) {
+private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit)?, onCancel: (() -> Unit)?, busy: Boolean) {
     val date = LocalDate.parse(event.scheduledDate)
     val locale = currentLocale()
     val typeLabel = event.type?.let { typeLabel(it) }
@@ -262,7 +288,13 @@ private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit
                     description?.let { Text(text = it, modifier = Modifier.padding(top = 2.dp), style = EventSubtitleStyle) }
                 }
             }
-            onComplete?.let { CompleteControl(enabled = !completing, onClick = it) }
+            onComplete?.let { CompleteControl(enabled = !busy, onClick = it) }
+            // US33: abre la confirmacion; IconButton ya ocupa 48dp (misma altura que CompleteControl)
+            onCancel?.let {
+                IconButton(onClick = it, enabled = !busy) {
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.sanitary_calendar_cancel_event), tint = TextSecondary)
+                }
+            }
         }
     }
 }

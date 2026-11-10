@@ -112,6 +112,9 @@
     <string name="sanitary_calendar_register">Register</string>
     <string name="sanitary_calendar_applied_on">Application date</string>
     <string name="sanitary_calendar_empty">No pending activities.</string>
+    <string name="sanitary_calendar_cancel_event">Cancel event</string>
+    <string name="sanitary_calendar_cancel_confirm">Do you want to cancel this event?</string>
+    <string name="sanitary_calendar_cancel_keep">No, keep it</string>
     <string name="sanitary_calendar_type_vaccination">Vaccine</string>
     <string name="sanitary_calendar_type_treatment">Treatment</string>
     <string name="sanitary_calendar_type_disease">Disease</string>

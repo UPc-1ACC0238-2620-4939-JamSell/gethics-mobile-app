@@ -53,10 +53,17 @@ class SanitaryCalendarViewModelTest {
     private class FakeService(
         val delayMs: (YearMonth) -> Long = { 0 },
         val completeResponse: () -> Response<Unit> = { Response.success(Unit) },
+        val cancelResponse: () -> Response<Unit> = { Response.success(Unit) },
         val events: (YearMonth) -> List<ScheduledEventDto>
     ) : SanitaryService {
         val requested = mutableListOf<YearMonth>()
         val completed = mutableListOf<Triple<String, String, CompleteSanitaryEventRequest>>()
+        val cancelled = mutableListOf<Pair<String, String>>()
+
+        override suspend fun cancelEvent(animalId: String, eventId: String): Response<Unit> {
+            cancelled += animalId to eventId
+            return cancelResponse()
+        }
 
         override suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest): Response<Unit> {
             completed += Triple(animalId, eventId, request)
@@ -198,5 +205,58 @@ class SanitaryCalendarViewModelTest {
         assertEquals(message, viewModel.actionMessage.value)
         assertEquals(listOf(YearMonth.of(2026, 10)), service.requested)
         assertFalse(viewModel.completing.value)
+    }
+
+    // ---------------- US33: cancelar evento ----------------
+
+    @Test
+    fun `cancelar evento envia animalId y eventId y recarga el mes con la respuesta del backend`() = runTest(dispatcher) {
+        var cancelled = false
+        // tras cancelar, el backend ya no devuelve el evento: la lista sale del servidor, no de un estado local
+        val service = FakeService { if (cancelled) emptyList() else listOf(vaccination) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.cancelEvent(vaccination)
+        assertTrue(viewModel.cancelling.value)
+        cancelled = true
+        advanceUntilIdle()
+
+        assertEquals(listOf("animal-uuid" to "evento-uuid"), service.cancelled)
+        assertEquals(listOf(YearMonth.of(2026, 10), YearMonth.of(2026, 10)), service.requested) // recarga
+        assertEquals(emptyList<ScheduledEventDto>(), viewModel.state.value.data)
+        assertFalse(viewModel.cancelling.value)
+        assertEquals("", viewModel.actionMessage.value)
+    }
+
+    @Test
+    fun `error del backend al cancelar expone el message y no recarga`() = runTest(dispatcher) {
+        val message = "El evento no esta programado."
+        val service = FakeService(
+            cancelResponse = { Response.error(409, """{"message":"$message"}""".toResponseBody("application/json".toMediaType())) }
+        ) { listOf(vaccination) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.cancelEvent(vaccination)
+        advanceUntilIdle()
+
+        assertEquals(message, viewModel.actionMessage.value)
+        assertEquals(listOf(YearMonth.of(2026, 10)), service.requested)
+        assertEquals(listOf(vaccination), viewModel.state.value.data) // sigue pendiente
+        assertFalse(viewModel.cancelling.value)
+    }
+
+    @Test
+    fun `toques repetidos durante la cancelacion envian una sola peticion`() = runTest(dispatcher) {
+        val service = FakeService { listOf(vaccination) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.cancelEvent(vaccination)
+        viewModel.cancelEvent(vaccination)
+        advanceUntilIdle()
+
+        assertEquals(1, service.cancelled.size)
     }
 }
