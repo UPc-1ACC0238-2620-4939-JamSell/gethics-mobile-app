@@ -32,6 +32,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import com.jamsell.gethics.livestock.presentation.localizedMessage
 import com.jamsell.gethics.shared.ui.components.GethicsButton
 import com.jamsell.gethics.shared.ui.components.GethicsTextField
 import androidx.compose.material3.DropdownMenu
@@ -183,7 +184,7 @@ fun AnimalListScreen(
 
             when {
                 state.isLoading && animals == null -> LoadingBox()
-                animals == null -> ErrorMessage(message = state.message, onRetry = { viewModel.load() })
+                animals == null -> ErrorMessage(message = localizedMessage(state.message), onRetry = { viewModel.load() })
                 animals.isEmpty() -> EmptyState(message = emptyText(state.message))
                 else -> {
                     Text(
@@ -286,7 +287,7 @@ private fun QrDialog(
                     value = code,
                     onValueChange = { code = it },
                     label = stringResource(R.string.livestock_qr_label),
-                    errorMessage = if (error == QR_REQUIRED_ERROR) stringResource(R.string.livestock_qr_required) else error,
+                    errorMessage = if (error == QR_REQUIRED_ERROR) stringResource(R.string.livestock_qr_required) else error?.let { localizedMessage(it) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 GethicsButton(

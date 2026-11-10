@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
+import com.jamsell.gethics.livestock.presentation.localizedMessage
 import com.jamsell.gethics.livestock.presentation.qrBitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -168,7 +169,7 @@ fun AnimalDetailScreen(
         when {
             state.isLoading && animal == null -> LoadingBox()
             animal == null -> {
-                ErrorMessage(message = state.message, onRetry = { viewModel.load() })
+                ErrorMessage(message = localizedMessage(state.message), onRetry = { viewModel.load() })
                 RoundIconButton(
                     onClick = onBack,
                     modifier = Modifier
@@ -221,10 +222,10 @@ fun AnimalDetailScreen(
                         )
                     }
                     viewModel.saleError.value?.let { error ->
-                        AlertBanner(text = stringResource(R.string.animal_sale_error_prefix, error))
+                        AlertBanner(text = stringResource(R.string.animal_sale_error_prefix, localizedMessage(error)))
                     }
                     viewModel.deactivationError.value?.let { error ->
-                        AlertBanner(text = stringResource(R.string.animal_deactivate_error_prefix, error))
+                        AlertBanner(text = stringResource(R.string.animal_deactivate_error_prefix, localizedMessage(error)))
                     }
                     if (animal.status == null || animal.status == AnimalStatus.ACTIVE.name) {
                         GethicsButton(

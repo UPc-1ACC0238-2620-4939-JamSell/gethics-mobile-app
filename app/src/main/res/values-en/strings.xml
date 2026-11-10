@@ -250,4 +250,17 @@
     <string name="farm_error_location_required">The location is required</string>
     <string name="farm_error_location_too_long">The location cannot exceed 200 characters</string>
     <string name="farm_error_size_invalid">The size must be greater than 0 (up to 2 decimals)</string>
+
+    <!-- App messages (connection, load and save errors) -->
+    <string name="livestock_error_connection">Could not connect to the server</string>
+    <string name="livestock_error_load">Could not load the inventory</string>
+    <string name="livestock_qr_error">Could not look up the QR code</string>
+    <string name="animal_error_load">Could not load the animal</string>
+    <string name="animal_error_register">Could not register the animal</string>
+    <string name="animal_error_save">Could not save the changes</string>
+    <string name="animal_error_deactivate">Could not deactivate the animal</string>
+    <string name="animal_error_sale">Could not register the sale</string>
+    <string name="farm_error_not_found">Farm not found</string>
+    <string name="farm_error_load">Could not load the farm</string>
+    <string name="farm_error_save">Could not save the farm</string>
 </resources>

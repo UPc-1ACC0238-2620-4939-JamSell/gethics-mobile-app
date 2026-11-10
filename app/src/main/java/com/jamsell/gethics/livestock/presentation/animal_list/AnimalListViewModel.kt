@@ -1,5 +1,7 @@
 package com.jamsell.gethics.livestock.presentation.animal_list
 
+import com.jamsell.gethics.livestock.presentation.LOAD_INVENTORY_ERROR
+import com.jamsell.gethics.livestock.presentation.QR_LOOKUP_ERROR
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -88,7 +90,7 @@ class AnimalListViewModel(private val repository: LivestockRepository) : ViewMod
                 is Resource.Success -> found(result.data?.id)
                 is Resource.Error -> {
                     val cached = result.data
-                    if (cached != null) found(cached.id) else _qrError.value = result.message ?: "No se pudo buscar el código QR"
+                    if (cached != null) found(cached.id) else _qrError.value = result.message ?: QR_LOOKUP_ERROR
                 }
             }
             _qrLooking.value = false
@@ -131,7 +133,7 @@ class AnimalListViewModel(private val repository: LivestockRepository) : ViewMod
                         show(cached, query, status, offline = true)
                     } else {
                         _offline.value = false
-                        _state.value = UIState(message = result.message ?: "No se pudo cargar el inventario")
+                        _state.value = UIState(message = result.message ?: LOAD_INVENTORY_ERROR)
                     }
                 }
             }

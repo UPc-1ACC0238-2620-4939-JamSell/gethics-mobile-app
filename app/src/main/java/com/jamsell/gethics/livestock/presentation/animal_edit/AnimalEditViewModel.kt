@@ -1,5 +1,7 @@
 package com.jamsell.gethics.livestock.presentation.animal_edit
 
+import com.jamsell.gethics.livestock.presentation.LOAD_ANIMAL_ERROR
+import com.jamsell.gethics.livestock.presentation.SAVE_ANIMAL_ERROR
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -56,7 +58,7 @@ class AnimalEditViewModel(
             _animal.value = when (val result = repository.getAnimal(animalId)) {
                 is Resource.Success -> UIState(data = result.data)
                 // Aun con cache se bloquea la edicion sin conexion: guardar necesita al backend.
-                is Resource.Error -> UIState(message = result.message ?: "No se pudo cargar el animal")
+                is Resource.Error -> UIState(message = result.message ?: LOAD_ANIMAL_ERROR)
             }
         }
     }
@@ -73,7 +75,7 @@ class AnimalEditViewModel(
             val result = repository.updateAnimal(current, name.trim().ifEmpty { null }, breed.trim(), sex, birthDate.toString())
             _saveState.value = when (result) {
                 is Resource.Success -> UIState(data = true)
-                is Resource.Error -> UIState(message = result.message ?: "No se pudo guardar los cambios")
+                is Resource.Error -> UIState(message = result.message ?: SAVE_ANIMAL_ERROR)
             }
         }
     }

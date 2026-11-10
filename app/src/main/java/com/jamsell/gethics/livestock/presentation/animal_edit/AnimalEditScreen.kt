@@ -47,6 +47,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jamsell.gethics.livestock.presentation.localizedMessage
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.domain.model.AnimalSex
@@ -110,7 +111,7 @@ fun AnimalEditScreen(viewModel: AnimalEditViewModel, onBack: () -> Unit, onSaved
 
         when {
             animalState.isLoading -> LoadingBox()
-            animal == null -> ErrorMessage(message = animalState.message, onRetry = { viewModel.load() })
+            animal == null -> ErrorMessage(message = localizedMessage(animalState.message), onRetry = { viewModel.load() })
             else -> EditForm(
                 animal = animal,
                 errors = viewModel.errors.value,
@@ -191,7 +192,7 @@ private fun EditForm(
         )
 
         if (saveState.message.isNotEmpty()) {
-            Text(text = saveState.message, style = ErrorStyle)
+            Text(text = localizedMessage(saveState.message), style = ErrorStyle)
         }
 
         GethicsButton(

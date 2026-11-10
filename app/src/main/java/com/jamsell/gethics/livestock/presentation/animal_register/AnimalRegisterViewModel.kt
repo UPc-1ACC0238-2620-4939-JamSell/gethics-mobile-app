@@ -1,5 +1,6 @@
 package com.jamsell.gethics.livestock.presentation.animal_register
 
+import com.jamsell.gethics.livestock.presentation.REGISTER_ANIMAL_ERROR
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -71,7 +72,7 @@ class AnimalRegisterViewModel(
             val result = repository.registerAnimal(tag.trim(), breed, birthDate.toString(), parseWeight(weight), photoUri)
             _state.value = when (result) {
                 is Resource.Success -> UIState(data = true)
-                is Resource.Error -> UIState(message = result.message ?: "No se pudo registrar el animal")
+                is Resource.Error -> UIState(message = result.message ?: REGISTER_ANIMAL_ERROR)
             }
         }
     }

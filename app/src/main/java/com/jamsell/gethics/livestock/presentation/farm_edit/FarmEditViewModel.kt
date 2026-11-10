@@ -1,5 +1,7 @@
 package com.jamsell.gethics.livestock.presentation.farm_edit
 
+import com.jamsell.gethics.livestock.presentation.LOAD_FARM_ERROR
+import com.jamsell.gethics.livestock.presentation.SAVE_FARM_ERROR
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -68,7 +70,7 @@ class FarmEditViewModel(
         viewModelScope.launch {
             _farm.value = when (val result = repository.getFarm(ownerId, farmId)) {
                 is Resource.Success -> UIState(data = result.data)
-                is Resource.Error -> UIState(message = result.message ?: "No se pudo cargar la granja")
+                is Resource.Error -> UIState(message = result.message ?: LOAD_FARM_ERROR)
             }
         }
     }
@@ -85,7 +87,7 @@ class FarmEditViewModel(
             val size = sizeText.takeIf { it.isNotBlank() }?.let(::parseSize)
             _saveState.value = when (val result = repository.updateFarm(farmId, name.trim(), location.trim(), size)) {
                 is Resource.Success -> UIState(data = true)
-                is Resource.Error -> UIState(message = result.message ?: "No se pudo guardar la granja")
+                is Resource.Error -> UIState(message = result.message ?: SAVE_FARM_ERROR)
             }
         }
     }

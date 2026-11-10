@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jamsell.gethics.livestock.presentation.localizedMessage
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Farm
 import com.jamsell.gethics.shared.common.UIState
@@ -81,7 +82,7 @@ fun FarmEditScreen(viewModel: FarmEditViewModel, onBack: () -> Unit, onSaved: ()
         }
         when {
             farmState.isLoading -> LoadingBox()
-            farm == null -> ErrorMessage(message = farmState.message, onRetry = { viewModel.load() })
+            farm == null -> ErrorMessage(message = localizedMessage(farmState.message), onRetry = { viewModel.load() })
             else -> FarmForm(farm, viewModel.errors.value, saveState, viewModel::save, onBack)
         }
     }
@@ -129,7 +130,7 @@ private fun FarmForm(
             errorMessage = localizedFarmError(errors.size),
             modifier = Modifier.fillMaxWidth()
         )
-        if (saveState.message.isNotEmpty()) AlertBanner(text = saveState.message)
+        if (saveState.message.isNotEmpty()) AlertBanner(text = localizedMessage(saveState.message))
 
         GethicsButton(
             text = stringResource(R.string.farm_edit_save),

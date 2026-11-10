@@ -1,5 +1,8 @@
 package com.jamsell.gethics.livestock.presentation.animal_detail
 
+import com.jamsell.gethics.livestock.presentation.LOAD_ANIMAL_ERROR
+import com.jamsell.gethics.livestock.presentation.DEACTIVATE_ANIMAL_ERROR
+import com.jamsell.gethics.livestock.presentation.SELL_ANIMAL_ERROR
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -70,7 +73,7 @@ class AnimalDetailViewModel(
                     _state.value = if (cached != null) {
                         UIState(data = cached)
                     } else {
-                        UIState(message = result.message ?: "No se pudo cargar el animal")
+                        UIState(message = result.message ?: LOAD_ANIMAL_ERROR)
                     }
                 }
             }
@@ -96,7 +99,7 @@ class AnimalDetailViewModel(
         viewModelScope.launch {
             when (val result = repository.deactivateAnimal(animalId)) {
                 is Resource.Success -> _deactivated.value = true
-                is Resource.Error -> _deactivationError.value = result.message ?: "No se pudo dar de baja el animal"
+                is Resource.Error -> _deactivationError.value = result.message ?: DEACTIVATE_ANIMAL_ERROR
             }
             _deactivating.value = false
         }
@@ -156,7 +159,7 @@ class AnimalDetailViewModel(
         viewModelScope.launch {
             when (val result = repository.sellAnimal(animal, price, date.toString(), ownerId)) {
                 is Resource.Success -> _sold.value = true
-                is Resource.Error -> _saleError.value = result.message ?: "No se pudo registrar la venta"
+                is Resource.Error -> _saleError.value = result.message ?: SELL_ANIMAL_ERROR
             }
             _selling.value = false
         }

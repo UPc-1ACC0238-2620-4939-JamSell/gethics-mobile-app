@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.jamsell.gethics.R
+import com.jamsell.gethics.livestock.data.repository.CONNECTION_ERROR
+import com.jamsell.gethics.livestock.data.repository.FARM_NOT_FOUND
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.presentation.animal_register.FUTURE_BIRTH_DATE_ERROR
 import com.jamsell.gethics.livestock.presentation.animal_register.INVALID_WEIGHT_ERROR
@@ -63,4 +65,25 @@ fun localizedAnimalError(error: String?): String? = when (error) {
 fun offlineBannerText(lastUpdatedMillis: Long?): String {
     val date = formatLastUpdate(lastUpdatedMillis) ?: return stringResource(R.string.livestock_offline)
     return stringResource(R.string.livestock_offline_since, date)
+}
+
+/**
+ * Mensajes de la app (errores de conexion, de carga o de guardado) en el idioma de la app. Los mensajes que envia el
+ * backend (por ejemplo "El animal ya no esta activo.") se muestran tal cual llegan.
+ */
+@Composable
+fun localizedMessage(message: String?): String = when (message) {
+    null -> ""
+    CONNECTION_ERROR -> stringResource(R.string.livestock_error_connection)
+    FARM_NOT_FOUND -> stringResource(R.string.farm_error_not_found)
+    LOAD_ANIMAL_ERROR -> stringResource(R.string.animal_error_load)
+    LOAD_INVENTORY_ERROR -> stringResource(R.string.livestock_error_load)
+    REGISTER_ANIMAL_ERROR -> stringResource(R.string.animal_error_register)
+    SAVE_ANIMAL_ERROR -> stringResource(R.string.animal_error_save)
+    DEACTIVATE_ANIMAL_ERROR -> stringResource(R.string.animal_error_deactivate)
+    SELL_ANIMAL_ERROR -> stringResource(R.string.animal_error_sale)
+    QR_LOOKUP_ERROR -> stringResource(R.string.livestock_qr_error)
+    LOAD_FARM_ERROR -> stringResource(R.string.farm_error_load)
+    SAVE_FARM_ERROR -> stringResource(R.string.farm_error_save)
+    else -> message
 }

@@ -40,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.jamsell.gethics.livestock.presentation.localizedMessage
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.presentation.localizedAnimalError
 import androidx.compose.runtime.LaunchedEffect
@@ -208,7 +209,7 @@ fun AnimalRegisterScreen(viewModel: AnimalRegisterViewModel, onBack: () -> Unit,
             }
 
             if (state.message.isNotEmpty()) {
-                Text(text = state.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                Text(text = localizedMessage(state.message), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
             }
         }
 
