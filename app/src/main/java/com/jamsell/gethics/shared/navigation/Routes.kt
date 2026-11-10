@@ -42,6 +42,12 @@ object Routes {
     const val REPORTS = "reports"
     const val ALERTS = "alerts"
 
+    // iot
+    const val DEVICES = "devices"
+    const val DEVICE_READINGS = "device_readings/{deviceId}?code={code}"
+    fun deviceReadings(deviceId: String, code: String) =
+        "device_readings/$deviceId?code=${java.net.URLEncoder.encode(code, "UTF-8")}"
+
     // settings (notificaciones push + idioma)
     const val SETTINGS = "settings"
 

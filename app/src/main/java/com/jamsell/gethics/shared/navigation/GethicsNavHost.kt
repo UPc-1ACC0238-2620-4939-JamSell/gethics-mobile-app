@@ -16,6 +16,10 @@ import com.jamsell.gethics.finance.presentation.finance_summary.FinanceSummaryVi
 import com.jamsell.gethics.finance.presentation.register_transaction.RegisterTransactionScreen
 import com.jamsell.gethics.finance.presentation.register_transaction.RegisterTransactionViewModel
 import com.jamsell.gethics.iam.domain.model.Role
+import com.jamsell.gethics.iot.presentation.devices.DevicesScreen
+import com.jamsell.gethics.iot.presentation.devices.DevicesViewModel
+import com.jamsell.gethics.iot.presentation.readings.DeviceReadingsScreen
+import com.jamsell.gethics.iot.presentation.readings.DeviceReadingsViewModel
 import com.jamsell.gethics.iam.presentation.forgot_password.ForgotPasswordScreen
 import com.jamsell.gethics.iam.presentation.forgot_password.ForgotPasswordViewModel
 import com.jamsell.gethics.iam.presentation.profile.ProfileScreen
@@ -244,7 +248,8 @@ fun GethicsNavHost(
                 viewModel = gethicsViewModel {
                     ReportsViewModel(container.analyticsRepository, container.sessionStorage.getOwnerId())
                 },
-                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onOpenDevices = { navController.navigate(Routes.DEVICES) }
             )
         }
         composable(Routes.ALERTS) {
@@ -252,6 +257,32 @@ fun GethicsNavHost(
                 viewModel = gethicsViewModel {
                     AlertsViewModel(container.alertRepository, container.sessionStorage.getOwnerId())
                 },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // ---------------- iot ----------------
+        composable(Routes.DEVICES) {
+            DevicesScreen(
+                viewModel = gethicsViewModel {
+                    DevicesViewModel(container.iotRepository, container.sessionStorage.getOwnerId())
+                },
+                onBack = { navController.popBackStack() },
+                onOpenReadings = { id, code -> navController.navigate(Routes.deviceReadings(id, code)) }
+            )
+        }
+        composable(
+            route = Routes.DEVICE_READINGS,
+            arguments = listOf(
+                navArgument("deviceId") { type = NavType.StringType },
+                navArgument("code") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) { entry ->
+            val deviceId = entry.arguments?.getString("deviceId").orEmpty()
+            val code = entry.arguments?.getString("code").orEmpty()
+            DeviceReadingsScreen(
+                viewModel = gethicsViewModel { DeviceReadingsViewModel(container.iotRepository, deviceId) },
+                deviceCode = code,
                 onBack = { navController.popBackStack() }
             )
         }

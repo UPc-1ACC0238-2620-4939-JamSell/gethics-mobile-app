@@ -12,6 +12,8 @@ import com.jamsell.gethics.iam.data.AuthService
 import com.jamsell.gethics.iam.data.UserService
 import com.jamsell.gethics.iam.data.repository.UserRepository
 import com.jamsell.gethics.iam.data.repository.AuthRepository
+import com.jamsell.gethics.iot.data.IotService
+import com.jamsell.gethics.iot.data.repository.IotRepository
 import com.jamsell.gethics.livestock.data.LivestockService
 import com.jamsell.gethics.notifications.data.NotificationService
 import com.jamsell.gethics.notifications.data.repository.NotificationRepository
@@ -91,6 +93,11 @@ class AppContainer(context: Context) {
 
     val alertRepository by lazy {
         AlertRepository(retrofit.create(AlertService::class.java))
+    }
+
+    // iot
+    val iotRepository by lazy {
+        IotRepository(retrofit.create(IotService::class.java))
     }
 
     // notifications

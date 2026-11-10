@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -56,7 +57,7 @@ private const val PICK_TO = 2
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit) {
+fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit, onOpenDevices: () -> Unit = {}) {
     val state = viewModel.state.value
     val from = viewModel.from.value
     val to = viewModel.to.value
@@ -78,6 +79,9 @@ fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit) {
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleLarge
             )
+            IconButton(onClick = onOpenDevices) {
+                Icon(Icons.Filled.Sensors, contentDescription = stringResource(R.string.iot_open))
+            }
             IconButton(onClick = onOpenSettings) {
                 Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_open))
             }
