@@ -77,8 +77,9 @@ class AppContainer(context: Context) {
     }
 
     // veterinary
+    val veterinaryService: VeterinaryService by lazy { retrofit.create(VeterinaryService::class.java) }
     val veterinaryRepository by lazy {
-        VeterinaryRepository(retrofit.create(VeterinaryService::class.java))
+        VeterinaryRepository(veterinaryService)
     }
 
     // finance

@@ -207,7 +207,7 @@ fun GethicsNavHost(
         // ---------------- veterinary ----------------
         composable(Routes.ASSIGNED_CLIENTS) {
             AssignedClientsScreen(
-                viewModel = gethicsViewModel { AssignedClientsViewModel(container.veterinaryRepository) },
+                viewModel = gethicsViewModel { AssignedClientsViewModel(container.veterinaryService) },
                 onClientClick = { id -> navController.navigate(Routes.clientPatients(id)) }
             )
         }
