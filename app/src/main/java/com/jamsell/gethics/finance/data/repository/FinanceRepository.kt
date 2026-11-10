@@ -32,4 +32,17 @@ class FinanceRepository(private val service: FinanceService) {
         } catch (e: IOException) {
             Resource.Error(CONNECTION_ERROR)
         }
+
+    /** US31. Anula un movimiento financiero por su ID. */
+    suspend fun voidFinancialMovement(movementId: Long): Resource<Unit> =
+        try {
+            val response = service.voidFinancialMovement(movementId)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.errorMessage())
+            }
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
 }

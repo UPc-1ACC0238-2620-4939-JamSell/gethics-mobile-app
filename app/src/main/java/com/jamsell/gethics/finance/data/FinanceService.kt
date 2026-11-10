@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FinanceService {
@@ -11,6 +12,12 @@ interface FinanceService {
     /** Registra un ingreso o gasto. 201 con el movimiento; 400 si el monto es <= 0 o falta un campo. */
     @POST("api/v1/finances")
     suspend fun registerTransaction(@Body request: RegisterTransactionRequest): Response<TransactionResponse>
+
+    @POST("api/v1/finances/movements/{id}/void") // Ajusta la ruta según tu backend
+    suspend fun voidFinancialMovement(
+        @Path("id") movementId: Long, // o UUID según tu modelo
+        @Body request: VoidMovementRequest? = null
+    ): Response<Unit>
 
     /**
      * US16. Balance y movimientos del ganadero. from y to (yyyy-MM-dd) van juntos o ninguno:

@@ -21,6 +21,7 @@ data class TransactionResponse(
     val category: String,
     val date: String,
     val description: String?
+
 )
 
 /**
@@ -34,4 +35,9 @@ data class FinancialSummaryResponse(
     val balance: Double,
     val transactions: List<TransactionResponse>,
     val message: String?
+)
+
+// Si el endpoint de anulación requiere un motivo o datos adicionales en el body:
+data class VoidMovementRequest(
+    val reason: String? = null
 )
