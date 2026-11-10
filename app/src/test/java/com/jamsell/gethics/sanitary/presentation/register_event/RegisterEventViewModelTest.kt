@@ -59,5 +59,6 @@ class RegisterEventViewModelTest {
         override suspend fun getClinicalHistory(animalId: String) = error("no usado")
         override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest) = error("no usado")
         override suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest) = error("no usado")
+        override suspend fun cancelEvent(animalId: String, eventId: String) = error("no usado")
     }
 }

@@ -55,6 +55,7 @@ class ScheduleVaccinationViewModelTest {
         override suspend fun getCalendar(year: Int, month: Int) = error("no usado")
         override suspend fun getClinicalHistory(animalId: String) = error("no usado")
         override suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest) = error("no usado")
+        override suspend fun cancelEvent(animalId: String, eventId: String) = error("no usado")
     }
 
     @Test

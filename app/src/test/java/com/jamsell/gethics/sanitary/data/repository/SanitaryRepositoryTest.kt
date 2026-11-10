@@ -32,8 +32,10 @@ class SanitaryRepositoryTest {
         val calendar: (Int, Int) -> Response<SanitaryCalendarResponse> = { _, _ -> error("no usado") },
         val history: (String) -> Response<ClinicalHistoryResponse> = { error("no usado") },
         val schedule: (String, ScheduleSanitaryEventRequest) -> Response<Unit> = { _, _ -> error("no usado") },
-        val complete: (String, String, CompleteSanitaryEventRequest) -> Response<Unit> = { _, _, _ -> error("no usado") }
+        val complete: (String, String, CompleteSanitaryEventRequest) -> Response<Unit> = { _, _, _ -> error("no usado") },
+        val cancel: (String, String) -> Response<Unit> = { _, _ -> error("no usado") }
     ) : SanitaryService {
+        override suspend fun cancelEvent(animalId: String, eventId: String) = cancel(animalId, eventId)
         override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest) = register()
         override suspend fun getCalendar(year: Int, month: Int) = calendar(year, month)
         override suspend fun getClinicalHistory(animalId: String) = history(animalId)
@@ -261,5 +263,30 @@ class SanitaryRepositoryTest {
         val result = SanitaryRepository(FakeService(complete = { _, _, _ -> error(409, body) }))
             .completeEvent("animal-uuid", "evento-uuid", CompleteSanitaryEventRequest("2026-10-04T00:00:00", null))
         assertEquals("Solo un evento programado (SCHEDULED) puede registrarse como aplicado.", result.message)
+    }
+
+    // ---------------- US33 ----------------
+
+    @Test
+    fun `cancelar evento envia animalId y eventId y devuelve Success`() = runBlocking {
+        var sent: Pair<String, String>? = null
+        val result = SanitaryRepository(FakeService(cancel = { a, e -> sent = a to e; Response.success(200, Unit) }))
+            .cancelEvent("animal-uuid", "evento-uuid")
+        assertTrue(result is Resource.Success)
+        assertEquals("animal-uuid" to "evento-uuid", sent)
+    }
+
+    @Test
+    fun `cancelar evento con error HTTP devuelve el message del backend`() = runBlocking {
+        val body = """{"message":"El evento no esta programado."}"""
+        val result = SanitaryRepository(FakeService(cancel = { _, _ -> error(409, body) })).cancelEvent("animal-uuid", "evento-uuid")
+        assertTrue(result is Resource.Error)
+        assertEquals("El evento no esta programado.", result.message)
+    }
+
+    @Test
+    fun `cancelar evento sin conexion devuelve error de conexion`() = runBlocking {
+        val result = SanitaryRepository(FakeService(cancel = { _, _ -> throw IOException() })).cancelEvent("animal-uuid", "evento-uuid")
+        assertEquals(CONNECTION_ERROR, result.message)
     }
 }

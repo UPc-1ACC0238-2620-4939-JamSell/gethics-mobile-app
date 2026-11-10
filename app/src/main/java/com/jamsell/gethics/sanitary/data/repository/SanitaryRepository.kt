@@ -50,6 +50,15 @@ class SanitaryRepository(private val service: SanitaryService) {
             Resource.Error(CONNECTION_ERROR)
         }
 
+    /** US33: cancela un evento programado. */
+    suspend fun cancelEvent(animalId: String, eventId: String): Resource<Unit> =
+        try {
+            val response = service.cancelEvent(animalId, eventId)
+            if (response.isSuccessful) Resource.Success(Unit) else Resource.Error(response.errorMessage())
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
     suspend fun getClinicalHistory(animalId: String): Resource<ClinicalHistoryResponse> =
         try {
             val response = service.getClinicalHistory(animalId)

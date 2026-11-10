@@ -40,6 +40,10 @@ class SanitaryCalendarViewModel(
     private val _actionMessage = mutableStateOf("")
     val actionMessage: State<String> get() = _actionMessage
 
+    // US33: cancelar un evento programado (true mientras la peticion esta en curso)
+    private val _cancelling = mutableStateOf(false)
+    val cancelling: State<Boolean> get() = _cancelling
+
     init {
         load()
     }
@@ -90,6 +94,24 @@ class SanitaryCalendarViewModel(
             when (result) {
                 is Resource.Success -> load()
                 is Resource.Error -> _actionMessage.value = result.message ?: "No se pudo registrar la vacuna como aplicada"
+            }
+        }
+    }
+
+    /**
+     * US33: cancela un evento programado y recarga el mes. Sin estados locales: si el backend deja de devolverlo como
+     * SCHEDULED, desaparece del calendario. Una sola cancelacion a la vez (ignora toques repetidos).
+     */
+    fun cancelEvent(event: ScheduledEventDto) {
+        if (_cancelling.value) return
+        _actionMessage.value = ""
+        _cancelling.value = true
+        viewModelScope.launch {
+            val result = repository.cancelEvent(event.animalId, event.id)
+            _cancelling.value = false
+            when (result) {
+                is Resource.Success -> load()
+                is Resource.Error -> _actionMessage.value = result.message ?: "No se pudo cancelar el evento"
             }
         }
     }
