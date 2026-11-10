@@ -18,6 +18,8 @@ import com.jamsell.gethics.notifications.data.repository.NotificationRepository
 import com.jamsell.gethics.livestock.data.repository.LivestockRepository
 import com.jamsell.gethics.sanitary.data.SanitaryService
 import com.jamsell.gethics.sanitary.data.repository.SanitaryRepository
+import com.jamsell.gethics.sanitary.data.sync.SanitarySyncer
+import com.jamsell.gethics.sanitary.data.sync.enqueueSanitarySync
 import com.jamsell.gethics.shared.data.local.AppDatabase
 import com.jamsell.gethics.shared.data.local.SessionStorage
 import com.jamsell.gethics.shared.data.remote.ApiClient
@@ -40,7 +42,9 @@ class AppContainer(context: Context) {
 
     private val database by lazy {
         Room.databaseBuilder(context, AppDatabase::class.java, "db-gethics")
-            .fallbackToDestructiveMigration(true) // solo es cache offline: al cambiar el esquema se recrea
+            // Recrea la base al cambiar el esquema. OJO desde v5: tambien borraria la cola offline de sanidad (US35);
+            // las proximas versiones necesitan Migration explicita (ver AppDatabase).
+            .fallbackToDestructiveMigration(true)
             .build()
     }
 
@@ -59,8 +63,15 @@ class AppContainer(context: Context) {
     }
 
     // sanitary
+    private val sanitaryService by lazy { retrofit.create(SanitaryService::class.java) }
+
+    // US35: sin conexion, registrar/programar quedan en Room y WorkManager los envia cuando vuelve la red
     val sanitaryRepository by lazy {
-        SanitaryRepository(retrofit.create(SanitaryService::class.java))
+        SanitaryRepository(sanitaryService, database.getPendingSanitaryOperationDao(), onQueued = { enqueueSanitarySync(context) })
+    }
+
+    val sanitarySyncer by lazy {
+        SanitarySyncer(sanitaryService, database.getPendingSanitaryOperationDao())
     }
 
     // veterinary

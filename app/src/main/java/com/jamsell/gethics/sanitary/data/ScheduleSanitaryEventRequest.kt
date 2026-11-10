@@ -4,7 +4,8 @@ package com.jamsell.gethics.sanitary.data
 data class ScheduleSanitaryEventRequest(
     val type: SanitaryEventType,
     val scheduledDate: String,   // LocalDate ISO: yyyy-MM-dd; el backend exige que no sea anterior a hoy
-    val description: String?     // opcional; null no se envia
+    val description: String?,    // opcional; null no se envia
+    val clientRequestId: String  // US35: UUID que genera SanitaryRepository; el mismo en cada reintento (200 si ya existe)
 )
 
 /** Body de CompleteSanitaryEventResource (POST .../{eventId}/complete). Sin description el backend conserva la de la programacion. */

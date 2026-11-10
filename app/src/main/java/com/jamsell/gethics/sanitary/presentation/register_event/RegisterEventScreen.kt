@@ -47,8 +47,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import android.widget.Toast
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -94,8 +97,14 @@ fun RegisterEventScreen(viewModel: RegisterEventViewModel, animalId: String, onS
     var description by rememberSaveable { mutableStateOf("") }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val savedOfflineMessage = stringResource(R.string.sanitary_saved_offline)
     LaunchedEffect(state.data) {
-        if (state.data == true) onSaved()
+        if (state.data == true) {
+            // US35: guardado sin conexion; el Toast sobrevive a la navegacion hacia atras (FormMessage es para errores)
+            if (viewModel.savedOffline.value) Toast.makeText(context, savedOfflineMessage, Toast.LENGTH_LONG).show()
+            onSaved()
+        }
     }
 
     Column(modifier = Modifier.fillMaxSize().imePadding()) {

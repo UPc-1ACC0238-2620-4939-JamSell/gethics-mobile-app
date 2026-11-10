@@ -21,8 +21,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import android.widget.Toast
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
+import com.jamsell.gethics.R
 import androidx.compose.ui.unit.dp
 import com.jamsell.gethics.sanitary.presentation.register_event.FormBottomBar
 import com.jamsell.gethics.sanitary.presentation.register_event.FormDateField
@@ -45,8 +49,14 @@ fun ScheduleVaccinationScreen(viewModel: ScheduleVaccinationViewModel, animalId:
     var description by rememberSaveable { mutableStateOf("") }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val savedOfflineMessage = stringResource(R.string.sanitary_saved_offline)
     LaunchedEffect(state.data) {
-        if (state.data == true) onScheduled()
+        if (state.data == true) {
+            // US35: programada sin conexion; el Toast sobrevive a la navegacion hacia atras
+            if (viewModel.savedOffline.value) Toast.makeText(context, savedOfflineMessage, Toast.LENGTH_LONG).show()
+            onScheduled()
+        }
     }
 
     Column(modifier = Modifier.fillMaxSize().imePadding()) {

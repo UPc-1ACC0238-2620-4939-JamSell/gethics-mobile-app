@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
-import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.repository.SanitaryRepository
+import com.jamsell.gethics.sanitary.data.repository.SanitarySaveResult
 import com.jamsell.gethics.shared.common.Resource
 import com.jamsell.gethics.shared.common.UIState
 import kotlinx.coroutines.launch
@@ -33,6 +33,10 @@ class ScheduleVaccinationViewModel(
     private val _state = mutableStateOf(UIState<Boolean>())
     val state: State<UIState<Boolean>> get() = _state
 
+    // US35: true si se guardo sin conexion (en la cola offline); la pantalla avisa antes de volver atras
+    private val _savedOffline = mutableStateOf(false)
+    val savedOffline: State<Boolean> get() = _savedOffline
+
     fun schedule(animalId: String, date: LocalDate, description: String) {
         validateScheduledDate(date, LocalDate.now(clock))?.let {
             _state.value = UIState(message = it)
@@ -40,9 +44,12 @@ class ScheduleVaccinationViewModel(
         }
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
-            val request = ScheduleSanitaryEventRequest(SanitaryEventType.VACCINATION, date.toString(), description.trim().ifEmpty { null })
-            _state.value = when (val result = repository.scheduleEvent(animalId, request)) {
-                is Resource.Success -> UIState(data = true)
+            val result = repository.scheduleEvent(animalId, SanitaryEventType.VACCINATION, date.toString(), description.trim().ifEmpty { null })
+            _state.value = when (result) {
+                is Resource.Success -> {
+                    _savedOffline.value = result.data == SanitarySaveResult.QUEUED
+                    UIState(data = true)
+                }
                 is Resource.Error -> UIState(message = result.message ?: "No se pudo programar la vacuna")
             }
         }

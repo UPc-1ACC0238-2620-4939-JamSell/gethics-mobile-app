@@ -11,6 +11,9 @@ import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryService
 import com.jamsell.gethics.sanitary.data.ScheduledEventDto
+import com.jamsell.gethics.sanitary.data.local.FakePendingSanitaryOperationDao
+import com.jamsell.gethics.sanitary.data.local.PendingSanitaryOperationStatus
+import com.jamsell.gethics.sanitary.data.local.PendingSanitaryOperationType
 import com.jamsell.gethics.shared.common.Resource
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
@@ -22,13 +25,16 @@ import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
 import java.time.YearMonth
+import java.util.UUID
 
 class SanitaryRepositoryTest {
 
-    private val request = RegisterSanitaryEventRequest(SanitaryEventType.TREATMENT, "2026-10-04T00:00:00", null)
+    /** US11 sin cola offline (sin pendingDao): el comportamiento previo a US35. */
+    private suspend fun SanitaryRepository.register() =
+        registerEvent("uuid", SanitaryEventType.TREATMENT, "2026-10-04T00:00:00", null)
 
     private class FakeService(
-        val register: () -> Response<Unit> = { error("no usado") },
+        val register: (RegisterSanitaryEventRequest) -> Response<Unit> = { error("no usado") },
         val calendar: (Int, Int) -> Response<SanitaryCalendarResponse> = { _, _ -> error("no usado") },
         val history: (String) -> Response<ClinicalHistoryResponse> = { error("no usado") },
         val schedule: (String, ScheduleSanitaryEventRequest) -> Response<Unit> = { _, _ -> error("no usado") },
@@ -36,7 +42,7 @@ class SanitaryRepositoryTest {
         val cancel: (String, String) -> Response<Unit> = { _, _ -> error("no usado") }
     ) : SanitaryService {
         override suspend fun cancelEvent(animalId: String, eventId: String) = cancel(animalId, eventId)
-        override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest) = register()
+        override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest) = register(request)
         override suspend fun getCalendar(year: Int, month: Int) = calendar(year, month)
         override suspend fun getClinicalHistory(animalId: String) = history(animalId)
         override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest) = schedule(animalId, request)
@@ -47,7 +53,8 @@ class SanitaryRepositoryTest {
     private fun historyRepository(block: (String) -> Response<ClinicalHistoryResponse>) =
         SanitaryRepository(FakeService(history = block))
 
-    private fun repositoryReturning(block: () -> Response<Unit>) = SanitaryRepository(FakeService(register = block))
+    private fun repositoryReturning(block: (RegisterSanitaryEventRequest) -> Response<Unit>) =
+        SanitaryRepository(FakeService(register = block))
 
     private fun calendarRepository(block: (Int, Int) -> Response<SanitaryCalendarResponse>) =
         SanitaryRepository(FakeService(calendar = block))
@@ -59,26 +66,28 @@ class SanitaryRepositoryTest {
 
     @Test
     fun `201 devuelve Success`() = runBlocking {
-        val result = repositoryReturning { Response.success(201, Unit) }.registerEvent("uuid", request)
+        val result = repositoryReturning { Response.success(201, Unit) }.register()
         assertTrue(result is Resource.Success)
+        assertEquals(SanitarySaveResult.SENT, result.data)
     }
 
     @Test
     fun `400 devuelve el message del backend`() = runBlocking {
         val body = """{"message":"La fecha del evento no puede ser posterior a hoy."}"""
-        val result = repositoryReturning { error(400, body) }.registerEvent("uuid", request)
+        val result = repositoryReturning { error(400, body) }.register()
         assertEquals("La fecha del evento no puede ser posterior a hoy.", result.message)
     }
 
     @Test
     fun `body no parseable devuelve mensaje generico con el codigo`() = runBlocking {
-        val result = repositoryReturning { error(500, "<html>oops</html>") }.registerEvent("uuid", request)
+        val result = repositoryReturning { error(500, "<html>oops</html>") }.register()
         assertEquals("No se pudo completar la solicitud (HTTP 500)", result.message)
     }
 
     @Test
     fun `sin conexion devuelve error`() = runBlocking {
-        val result = repositoryReturning { throw IOException() }.registerEvent("uuid", request)
+        // Sin cola offline (repository sin pendingDao); con cola, ver la seccion US35
+        val result = repositoryReturning { throw IOException() }.register()
         assertEquals(CONNECTION_ERROR, result.message)
     }
 
@@ -223,27 +232,32 @@ class SanitaryRepositoryTest {
 
     // ---------------- US13 ----------------
 
-    private val scheduleRequest = ScheduleSanitaryEventRequest(SanitaryEventType.VACCINATION, "2026-10-07", "Aftosa")
+    private suspend fun SanitaryRepository.schedule() =
+        scheduleEvent("animal-uuid", SanitaryEventType.VACCINATION, "2026-10-07", "Aftosa")
 
     @Test
     fun `programar vacuna envia animalId y request y devuelve Success`() = runBlocking {
         var sent: Pair<String, ScheduleSanitaryEventRequest>? = null
-        val result = SanitaryRepository(FakeService(schedule = { id, r -> sent = id to r; Response.success(201, Unit) }))
-            .scheduleEvent("animal-uuid", scheduleRequest)
+        val result = SanitaryRepository(FakeService(schedule = { id, r -> sent = id to r; Response.success(201, Unit) })).schedule()
         assertTrue(result is Resource.Success)
-        assertEquals("animal-uuid" to scheduleRequest, sent)
+        val (animalId, request) = sent!!
+        assertEquals("animal-uuid", animalId)
+        // US35: clientRequestId lo genera el repository; el resto del request no cambia
+        assertEquals(ScheduleSanitaryEventRequest(SanitaryEventType.VACCINATION, "2026-10-07", "Aftosa", request.clientRequestId), request)
+        assertEquals(request.clientRequestId, UUID.fromString(request.clientRequestId).toString()) // es un UUID valido
     }
 
     @Test
     fun `programar vacuna 400 devuelve el message del backend`() = runBlocking {
         val body = """{"message":"La fecha programada no puede ser anterior a hoy."}"""
-        val result = SanitaryRepository(FakeService(schedule = { _, _ -> error(400, body) })).scheduleEvent("animal-uuid", scheduleRequest)
+        val result = SanitaryRepository(FakeService(schedule = { _, _ -> error(400, body) })).schedule()
         assertEquals("La fecha programada no puede ser anterior a hoy.", result.message)
     }
 
     @Test
     fun `programar vacuna sin conexion devuelve error de conexion`() = runBlocking {
-        val result = SanitaryRepository(FakeService(schedule = { _, _ -> throw IOException() })).scheduleEvent("animal-uuid", scheduleRequest)
+        // Sin cola offline (repository sin pendingDao); con cola, ver la seccion US35
+        val result = SanitaryRepository(FakeService(schedule = { _, _ -> throw IOException() })).schedule()
         assertEquals(CONNECTION_ERROR, result.message)
     }
 
@@ -288,5 +302,101 @@ class SanitaryRepositoryTest {
     fun `cancelar evento sin conexion devuelve error de conexion`() = runBlocking {
         val result = SanitaryRepository(FakeService(cancel = { _, _ -> throw IOException() })).cancelEvent("animal-uuid", "evento-uuid")
         assertEquals(CONNECTION_ERROR, result.message)
+    }
+
+    // ---------------- US35: cola offline ----------------
+
+    private val dao = FakePendingSanitaryOperationDao()
+    private var queuedSignals = 0
+    private val sentRegisters = mutableListOf<RegisterSanitaryEventRequest>()
+    private val sentSchedules = mutableListOf<ScheduleSanitaryEventRequest>()
+
+    private fun offlineRepository(
+        register: (RegisterSanitaryEventRequest) -> Response<Unit> = { Response.success(201, Unit) },
+        schedule: (ScheduleSanitaryEventRequest) -> Response<Unit> = { Response.success(201, Unit) }
+    ) = SanitaryRepository(
+        FakeService(
+            register = { sentRegisters += it; register(it) },
+            schedule = { _, r -> sentSchedules += r; schedule(r) }
+        ),
+        dao,
+        onQueued = { queuedSignals++ }
+    )
+
+    @Test
+    fun `registrar online envia un clientRequestId UUID y no toca Room`() = runBlocking {
+        val result = offlineRepository().registerEvent("animal-uuid", SanitaryEventType.TREATMENT, "2026-11-08T00:00:00", "Ivermectina")
+
+        assertEquals(SanitarySaveResult.SENT, result.data)
+        UUID.fromString(sentRegisters.single().clientRequestId)
+        assertTrue(dao.rows.isEmpty())
+        assertEquals(0, queuedSignals)
+    }
+
+    @Test
+    fun `registrar sin conexion guarda en Room con el MISMO clientRequestId y avisa`() = runBlocking {
+        val result = offlineRepository(register = { throw IOException() })
+            .registerEvent("animal-uuid", SanitaryEventType.TREATMENT, "2026-11-08T00:00:00", "Ivermectina")
+
+        assertTrue(result is Resource.Success)
+        assertEquals(SanitarySaveResult.QUEUED, result.data)
+        val queued = dao.rows.single()
+        assertEquals(sentRegisters.single().clientRequestId, queued.clientRequestId)
+        assertEquals(PendingSanitaryOperationType.REGISTER, queued.operation)
+        assertEquals("animal-uuid", queued.animalId)
+        assertEquals(SanitaryEventType.TREATMENT, queued.eventType)
+        assertEquals("2026-11-08T00:00:00", queued.date)
+        assertEquals("Ivermectina", queued.description)
+        assertEquals(PendingSanitaryOperationStatus.PENDING, queued.status)
+        assertEquals(1, queuedSignals)
+    }
+
+    @Test
+    fun `programar sin conexion guarda SCHEDULE con el MISMO clientRequestId y avisa`() = runBlocking {
+        val result = offlineRepository(schedule = { throw IOException() })
+            .scheduleEvent("animal-uuid", SanitaryEventType.VACCINATION, "2026-11-20", null)
+
+        assertEquals(SanitarySaveResult.QUEUED, result.data)
+        val queued = dao.rows.single()
+        assertEquals(sentSchedules.single().clientRequestId, queued.clientRequestId)
+        assertEquals(PendingSanitaryOperationType.SCHEDULE, queued.operation)
+        assertEquals(SanitaryEventType.VACCINATION, queued.eventType)
+        assertEquals("2026-11-20", queued.date)
+        assertNull(queued.description)
+        assertEquals(1, queuedSignals)
+    }
+
+    @Test
+    fun `programar online devuelve SENT y no encola`() = runBlocking {
+        val result = offlineRepository().scheduleEvent("animal-uuid", SanitaryEventType.VACCINATION, "2026-11-20", "Aftosa")
+
+        assertEquals(SanitarySaveResult.SENT, result.data)
+        UUID.fromString(sentSchedules.single().clientRequestId)
+        assertTrue(dao.rows.isEmpty())
+    }
+
+    @Test
+    fun `un error HTTP devuelve Error con el message y NO encola`() = runBlocking {
+        val body = """{"message":"La fecha del evento no puede ser posterior a hoy."}"""
+        val register = offlineRepository(register = { error(400, body) })
+            .registerEvent("animal-uuid", SanitaryEventType.TREATMENT, "2026-11-08T00:00:00", null)
+        val schedule = offlineRepository(schedule = { error(400, body) })
+            .scheduleEvent("animal-uuid", SanitaryEventType.VACCINATION, "2026-11-20", null)
+
+        assertTrue(register is Resource.Error)
+        assertEquals("La fecha del evento no puede ser posterior a hoy.", register.message)
+        assertTrue(schedule is Resource.Error)
+        assertTrue(dao.rows.isEmpty())
+        assertEquals(0, queuedSignals)
+    }
+
+    @Test
+    fun `cada accion del usuario genera un clientRequestId distinto`() = runBlocking {
+        val repository = offlineRepository(register = { throw IOException() })
+        repository.registerEvent("animal-uuid", SanitaryEventType.TREATMENT, "2026-11-08T00:00:00", "igual")
+        repository.registerEvent("animal-uuid", SanitaryEventType.TREATMENT, "2026-11-08T00:00:00", "igual")
+
+        assertEquals(2, sentRegisters.map { it.clientRequestId }.distinct().size)
+        assertEquals(2, dao.rows.map { it.clientRequestId }.distinct().size)
     }
 }
