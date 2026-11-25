@@ -222,4 +222,6 @@
     <string name="animal_status_deceased">Fallecido</string>
     <string name="animal_status_inactive">Inactivo</string>
     <string name="animal_detail_status">Estado</string>
+    <string name="animal_detail_farm">Granja</string>
+    <string name="animal_detail_no_farm">Sin granja asignada</string>
 </resources>
