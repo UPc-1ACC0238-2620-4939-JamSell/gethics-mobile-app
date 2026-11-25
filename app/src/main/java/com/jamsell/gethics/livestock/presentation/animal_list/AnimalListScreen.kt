@@ -57,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
 import com.jamsell.gethics.livestock.domain.model.AnimalStatus
+import com.jamsell.gethics.livestock.presentation.animalStatusText
 import com.jamsell.gethics.shared.ui.components.AlertBanner
 import com.jamsell.gethics.shared.ui.components.EmptyState
 import com.jamsell.gethics.shared.ui.components.ErrorMessage
@@ -308,7 +309,7 @@ private fun StatusFilter(status: AnimalStatus, onStatusChange: (AnimalStatus) ->
     }
 }
 
-/** Avatar + arete + raza y peso + flecha. */
+/** Avatar + arete con su estado + raza y peso + flecha. */
 @Composable
 private fun AnimalCard(animal: Animal, onClick: () -> Unit) {
     Surface(
@@ -326,7 +327,11 @@ private fun AnimalCard(animal: Animal, onClick: () -> Unit) {
             Avatar(photoUrl = animal.photoUrl)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = animal.tag, style = TagStyle)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = animal.tag, style = TagStyle)
+                    Spacer(Modifier.width(8.dp))
+                    StatusBadge(status = animal.status)
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = animal.breed, style = DetailStyle)
                     animal.weightKg?.let { kg ->
@@ -364,6 +369,25 @@ private fun Avatar(photoUrl: String?) {
                 .clip(CircleShape),
             imageOptions = ImageOptions(contentScale = ContentScale.Crop),
             failure = { GethicsLogoMark(size = 56.dp, shape = CircleShape) }
+        )
+    }
+}
+
+/** Pastilla con el estado del animal (Activo, Vendido...). Sin estado o desconocido no se dibuja nada. */
+@Composable
+private fun StatusBadge(status: String?) {
+    val label = animalStatusText(status) ?: return
+    val (background, content) = when (AnimalStatus.fromName(status)) {
+        AnimalStatus.ACTIVE -> Color(0xFFE8F3E8) to Color(0xFF2E6B3A)
+        AnimalStatus.SOLD -> Color(0xFFFFF4E0) to Color(0xFFB26A00)
+        AnimalStatus.DECEASED -> Color(0xFFF3E3E4) to Color(0xFF733336)
+        else -> Color(0xFFEDEFED) to TextSecondary
+    }
+    Surface(shape = RoundedCornerShape(50), color = background) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            style = TextStyle(fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.sp, lineHeightStyle = FigmaLineHeight, color = content)
         )
     }
 }
