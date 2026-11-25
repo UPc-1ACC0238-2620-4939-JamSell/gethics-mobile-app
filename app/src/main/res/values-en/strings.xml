@@ -213,4 +213,9 @@
     <string name="animal_error_required">This field is required</string>
     <string name="animal_error_future_birth">The birth date cannot be in the future</string>
     <string name="animal_error_invalid_weight">Enter a weight greater than 0</string>
+    <string name="animal_status_active">Active</string>
+    <string name="animal_status_sold">Sold</string>
+    <string name="animal_status_deceased">Deceased</string>
+    <string name="animal_status_inactive">Inactive</string>
+    <string name="animal_detail_status">Status</string>
 </resources>
