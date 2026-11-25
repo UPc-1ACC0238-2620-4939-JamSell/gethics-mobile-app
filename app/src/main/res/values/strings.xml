@@ -217,4 +217,9 @@
     <string name="animal_error_required">Este campo es obligatorio</string>
     <string name="animal_error_future_birth">La fecha de nacimiento no puede ser futura</string>
     <string name="animal_error_invalid_weight">Ingresa un peso mayor a 0</string>
+    <string name="animal_status_active">Activo</string>
+    <string name="animal_status_sold">Vendido</string>
+    <string name="animal_status_deceased">Fallecido</string>
+    <string name="animal_status_inactive">Inactivo</string>
+    <string name="animal_detail_status">Estado</string>
 </resources>
