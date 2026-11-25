@@ -114,7 +114,7 @@ class AnimalDetailViewModelFarmTest {
         advanceUntilIdle()
 
         assertNotNull(viewModel.state.value.data)
-        assertNull(viewModel.state.value.message)
+        assertEquals("", viewModel.state.value.message)
         assertNull(viewModel.farm.value)
     }
 
