@@ -143,7 +143,7 @@ fun GethicsNavHost(
         ) { entry ->
             val animalId = entry.arguments?.getString("animalId").orEmpty()
             AnimalDetailScreen(
-                viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository, animalId) },
+                viewModel = gethicsViewModel { AnimalDetailViewModel(container.livestockRepository, animalId, container.farmRepository) },
                 animalId = animalId,
                 onBack = { navController.popBackStack() },
                 onEdit = { id -> navController.navigate(Routes.animalEdit(id)) },

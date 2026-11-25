@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Event
@@ -162,7 +163,7 @@ fun AnimalDetailScreen(
                     }
                     Text(text = stringResource(R.string.animal_detail_profile), style = SectionLabelStyle)
                     Text(text = stringResource(R.string.animal_detail_general_data), style = SectionTitleStyle)
-                    GeneralData(animal = animal, today = LocalDate.now())
+                    GeneralData(animal = animal, today = LocalDate.now(), farmName = viewModel.farm.value?.name)
 
                     Spacer(Modifier.height(4.dp))
                     GethicsButton(
@@ -263,9 +264,9 @@ private fun RoundIconButton(onClick: () -> Unit, modifier: Modifier = Modifier, 
     }
 }
 
-/** Cuadricula de dos columnas: Raza, Edad, Genero, Nacimiento, Peso, Codigo QR y Estado. */
+/** Cuadricula de dos columnas: Raza, Edad, Genero, Nacimiento, Peso, Codigo QR, Estado y Granja. */
 @Composable
-private fun GeneralData(animal: Animal, today: LocalDate) {
+private fun GeneralData(animal: Animal, today: LocalDate, farmName: String?) {
     val genderIcon = if (animal.sex == AnimalSex.MALE.name) Icons.Outlined.Male else Icons.Outlined.Female
     val tiles = listOf(
         Tile(Icons.Outlined.Pets, stringResource(R.string.animal_detail_breed), animal.breed),
@@ -274,7 +275,12 @@ private fun GeneralData(animal: Animal, today: LocalDate) {
         Tile(Icons.Outlined.Event, stringResource(R.string.animal_detail_birth), formatBirthDate(animal.birthDate)),
         Tile(Icons.Outlined.MonitorWeight, stringResource(R.string.animal_detail_weight), animal.weightKg?.let { "${formatWeight(it)} kg" } ?: stringResource(R.string.animal_detail_weight_unset)),
         Tile(Icons.Outlined.QrCode2, stringResource(R.string.animal_detail_qr), animal.qrCode ?: NO_DATA),
-        Tile(Icons.Outlined.Info, stringResource(R.string.animal_detail_status), animalStatusText(animal.status) ?: NO_DATA)
+        Tile(Icons.Outlined.Info, stringResource(R.string.animal_detail_status), animalStatusText(animal.status) ?: NO_DATA),
+        Tile(
+            Icons.Outlined.Agriculture,
+            stringResource(R.string.animal_detail_farm),
+            if (animal.farmId == null) stringResource(R.string.animal_detail_no_farm) else farmName ?: NO_DATA
+        )
     )
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         tiles.chunked(2).forEach { row ->

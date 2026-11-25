@@ -218,4 +218,6 @@
     <string name="animal_status_deceased">Deceased</string>
     <string name="animal_status_inactive">Inactive</string>
     <string name="animal_detail_status">Status</string>
+    <string name="animal_detail_farm">Farm</string>
+    <string name="animal_detail_no_farm">No farm assigned</string>
 </resources>

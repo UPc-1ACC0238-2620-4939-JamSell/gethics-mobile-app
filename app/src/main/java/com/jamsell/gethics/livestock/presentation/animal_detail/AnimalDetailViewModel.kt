@@ -4,8 +4,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jamsell.gethics.livestock.data.repository.FarmRepository
 import com.jamsell.gethics.livestock.data.repository.LivestockRepository
 import com.jamsell.gethics.livestock.domain.model.Animal
+import com.jamsell.gethics.livestock.domain.model.Farm
 import com.jamsell.gethics.shared.common.Resource
 import com.jamsell.gethics.shared.common.UIState
 import kotlinx.coroutines.Job
@@ -13,7 +15,8 @@ import kotlinx.coroutines.launch
 
 class AnimalDetailViewModel(
     private val repository: LivestockRepository,
-    private val animalId: String
+    private val animalId: String,
+    private val farmRepository: FarmRepository? = null
 ) : ViewModel() {
 
     // data = animal; data null -> message es el error. Mientras recarga conserva el animal anterior para no parpadear.
@@ -23,6 +26,10 @@ class AnimalDetailViewModel(
     /** true cuando el animal viene del cache de Room porque no hubo conexion. */
     private val _offline = mutableStateOf(false)
     val offline: State<Boolean> get() = _offline
+
+    /** Granja asignada al animal; null mientras carga, si no tiene granja o si no se pudo traer (sin conexion). */
+    private val _farm = mutableStateOf<Farm?>(null)
+    val farm: State<Farm?> get() = _farm
 
     private var loadJob: Job? = null
 
@@ -52,6 +59,7 @@ class AnimalDetailViewModel(
                 is Resource.Success -> {
                     _offline.value = false
                     _state.value = UIState(data = result.data)
+                    loadFarm(result.data?.farmId)
                 }
                 is Resource.Error -> {
                     val cached = result.data
@@ -61,8 +69,23 @@ class AnimalDetailViewModel(
                     } else {
                         UIState(message = result.message ?: "No se pudo cargar el animal")
                     }
+                    loadFarm(cached?.farmId)
                 }
             }
+        }
+    }
+
+    /** Trae la granja despues de mostrar el animal, para que la ficha no espere por ella. Un fallo solo deja el dato vacio. */
+    private suspend fun loadFarm(farmId: String?) {
+        val repository = farmRepository
+        if (farmId == null || repository == null) {
+            _farm.value = null
+            return
+        }
+        if (_farm.value?.id == farmId) return
+        _farm.value = when (val result = repository.getFarm(farmId)) {
+            is Resource.Success -> result.data
+            is Resource.Error -> null
         }
     }
 
