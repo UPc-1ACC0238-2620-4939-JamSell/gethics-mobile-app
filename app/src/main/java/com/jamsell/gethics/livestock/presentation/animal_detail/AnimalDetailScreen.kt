@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Female
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Male
 import androidx.compose.material.icons.outlined.MonitorWeight
 import androidx.compose.material.icons.outlined.Pets
@@ -54,6 +55,7 @@ import com.jamsell.gethics.livestock.domain.model.AnimalSex
 import com.jamsell.gethics.livestock.domain.model.AnimalStatus
 import com.jamsell.gethics.livestock.presentation.NO_DATA
 import com.jamsell.gethics.livestock.presentation.ageText
+import com.jamsell.gethics.livestock.presentation.animalStatusText
 import com.jamsell.gethics.livestock.presentation.formatAge
 import com.jamsell.gethics.livestock.presentation.sexLabel
 import com.jamsell.gethics.livestock.presentation.formatBirthDate
@@ -261,7 +263,7 @@ private fun RoundIconButton(onClick: () -> Unit, modifier: Modifier = Modifier, 
     }
 }
 
-/** Cuadricula de dos columnas: Raza, Edad, Genero, Nacimiento, Peso y Codigo QR. */
+/** Cuadricula de dos columnas: Raza, Edad, Genero, Nacimiento, Peso, Codigo QR y Estado. */
 @Composable
 private fun GeneralData(animal: Animal, today: LocalDate) {
     val genderIcon = if (animal.sex == AnimalSex.MALE.name) Icons.Outlined.Male else Icons.Outlined.Female
@@ -271,12 +273,15 @@ private fun GeneralData(animal: Animal, today: LocalDate) {
         Tile(genderIcon, stringResource(R.string.animal_detail_gender), sexText(animal.sex)),
         Tile(Icons.Outlined.Event, stringResource(R.string.animal_detail_birth), formatBirthDate(animal.birthDate)),
         Tile(Icons.Outlined.MonitorWeight, stringResource(R.string.animal_detail_weight), animal.weightKg?.let { "${formatWeight(it)} kg" } ?: stringResource(R.string.animal_detail_weight_unset)),
-        Tile(Icons.Outlined.QrCode2, stringResource(R.string.animal_detail_qr), animal.qrCode ?: NO_DATA)
+        Tile(Icons.Outlined.QrCode2, stringResource(R.string.animal_detail_qr), animal.qrCode ?: NO_DATA),
+        Tile(Icons.Outlined.Info, stringResource(R.string.animal_detail_status), animalStatusText(animal.status) ?: NO_DATA)
     )
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         tiles.chunked(2).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 row.forEach { tile -> InfoTile(tile, Modifier.weight(1f).fillMaxHeight()) }
+                // Con un numero impar de datos, la ultima fila deja el hueco para que la tarjeta no se estire.
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
