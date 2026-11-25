@@ -5,6 +5,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.jamsell.gethics.R
 import com.jamsell.gethics.livestock.domain.model.Animal
+import com.jamsell.gethics.livestock.domain.model.AnimalStatus
 import com.jamsell.gethics.livestock.presentation.animal_register.FUTURE_BIRTH_DATE_ERROR
 import com.jamsell.gethics.livestock.presentation.animal_register.INVALID_WEIGHT_ERROR
 import com.jamsell.gethics.livestock.presentation.animal_register.REQUIRED_FIELD_ERROR
@@ -56,4 +57,14 @@ fun localizedAnimalError(error: String?): String? = when (error) {
     FUTURE_BIRTH_DATE_ERROR -> stringResource(R.string.animal_error_future_birth)
     INVALID_WEIGHT_ERROR -> stringResource(R.string.animal_error_invalid_weight)
     else -> error
+}
+
+/** Estado de un animal concreto en singular ("Activo" / "Active"). Sin dato o desconocido: null, no se inventa. */
+@Composable
+fun animalStatusText(status: String?): String? = when (AnimalStatus.fromName(status)) {
+    AnimalStatus.ACTIVE -> stringResource(R.string.animal_status_active)
+    AnimalStatus.SOLD -> stringResource(R.string.animal_status_sold)
+    AnimalStatus.DECEASED -> stringResource(R.string.animal_status_deceased)
+    AnimalStatus.INACTIVE -> stringResource(R.string.animal_status_inactive)
+    null -> null
 }
