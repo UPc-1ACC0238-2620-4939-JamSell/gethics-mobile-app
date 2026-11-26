@@ -2,6 +2,7 @@ package com.jamsell.gethics.sanitary.presentation.upcoming_events
 
 import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
 import com.jamsell.gethics.sanitary.data.SanitaryService
 import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
@@ -56,6 +57,7 @@ class UpcomingEventsViewModelTest {
         override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest) = error("no usado")
         override suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest) = error("no usado")
         override suspend fun cancelEvent(animalId: String, eventId: String) = error("no usado")
+        override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest) = error("no usado")
         override suspend fun getClinicalHistory(animalId: String) = error("no usado")
     }
 

@@ -40,6 +40,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -133,7 +136,10 @@ fun SanitaryCalendarScreen(
     var eventToComplete by remember { mutableStateOf<ScheduledEventDto?>(null) }
     // US33: evento cuya cancelacion se esta confirmando (null = dialogo cerrado)
     var eventToCancel by remember { mutableStateOf<ScheduledEventDto?>(null) }
-    val busy = completing || viewModel.cancelling.value
+    // US47: evento que se esta reprogramando (null = dialogo cerrado)
+    var eventToReschedule by remember { mutableStateOf<ScheduledEventDto?>(null) }
+    val rescheduling = viewModel.rescheduling.value
+    val busy = completing || viewModel.cancelling.value || rescheduling
 
     Column(
         modifier = Modifier
@@ -192,6 +198,13 @@ fun SanitaryCalendarScreen(
                         onCancel = if (event.status == "SCHEDULED") {
                             { eventToCancel = event }
                         } else null,
+                        // US47: y tambien reprogramarse
+                        onReschedule = if (event.status == "SCHEDULED") {
+                            {
+                                viewModel.clearRescheduleError()
+                                eventToReschedule = event
+                            }
+                        } else null,
                         busy = busy
                     )
                 }
@@ -206,6 +219,22 @@ fun SanitaryCalendarScreen(
                 eventToComplete = null
                 viewModel.completeVaccination(event, appliedOn)
             }
+        )
+    }
+
+    // US47: el dialogo solo se cierra si el backend acepta la nueva fecha; con error conserva fecha y notas
+    eventToReschedule?.let { event ->
+        RescheduleDialog(
+            event = event,
+            busy = rescheduling,
+            error = viewModel.rescheduleError.value,
+            onDismiss = {
+                if (!rescheduling) {
+                    eventToReschedule = null
+                    viewModel.clearRescheduleError()
+                }
+            },
+            onConfirm = { date, notes -> viewModel.rescheduleEvent(event, date, notes) { eventToReschedule = null } }
         )
     }
 
@@ -266,7 +295,13 @@ private fun MonthButton(rotation: Float, description: String, onClick: () -> Uni
  * scheduledDate: el backend no entrega hora), titulo = tipo y subtitulo = descripcion si existe. Sin animalId.
  */
 @Composable
-private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit)?, onCancel: (() -> Unit)?, busy: Boolean) {
+private fun ScheduledEventCard(
+    event: ScheduledEventDto,
+    onComplete: (() -> Unit)?,
+    onCancel: (() -> Unit)?,
+    onReschedule: (() -> Unit)?,
+    busy: Boolean
+) {
     val date = LocalDate.parse(event.scheduledDate)
     val locale = currentLocale()
     val typeLabel = event.type?.let { typeLabel(it) }
@@ -301,6 +336,12 @@ private fun ScheduledEventCard(event: ScheduledEventDto, onComplete: (() -> Unit
                 }
             }
             onComplete?.let { CompleteControl(enabled = !busy, onClick = it) }
+            // US47: abre el dialogo de reprogramacion (nueva fecha y notas)
+            onReschedule?.let {
+                IconButton(onClick = it, enabled = !busy) {
+                    Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.sanitary_calendar_reschedule_event), tint = TextSecondary)
+                }
+            }
             // US33: abre la confirmacion; IconButton ya ocupa 48dp (misma altura que CompleteControl)
             onCancel?.let {
                 IconButton(onClick = it, enabled = !busy) {
@@ -362,6 +403,90 @@ private fun AppliedOnDialog(onDismiss: () -> Unit, onConfirm: (LocalDate) -> Uni
         )
     }
 }
+
+/**
+ * US47: nueva fecha (desde hoy; por defecto la actual si no vencio) y notas opcionales (por defecto las actuales). La fecha
+ * y las notas viven en el dialogo, asi que un error del backend no borra lo que el usuario ingreso.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RescheduleDialog(
+    event: ScheduledEventDto,
+    busy: Boolean,
+    error: RescheduleError?,
+    onDismiss: () -> Unit,
+    onConfirm: (LocalDate, String) -> Unit
+) {
+    val today = LocalDate.now()
+    val locale = currentLocale()
+    var date by remember(event.id) { mutableStateOf(LocalDate.parse(event.scheduledDate).let { if (it.isBefore(today)) today else it }) }
+    var notes by remember(event.id) { mutableStateOf(event.description.orEmpty()) }
+    var pickingDate by remember { mutableStateOf(false) }
+    val errorText = when (error) {
+        null -> null
+        RescheduleError.PastDate -> stringResource(R.string.sanitary_calendar_reschedule_past_date)
+        is RescheduleError.Server -> error.message.ifBlank { stringResource(R.string.sanitary_calendar_reschedule_error) }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.sanitary_calendar_reschedule_event)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(text = stringResource(R.string.sanitary_calendar_reschedule_date), style = EventSubtitleStyle)
+                OutlinedButton(onClick = { pickingDate = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
+                    Icon(painterResource(R.drawable.ic_calendar), contentDescription = null, modifier = Modifier.size(16.dp), tint = Accent)
+                    Spacer(Modifier.width(8.dp))
+                    Text(date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale)))
+                }
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { if (it.length <= RESCHEDULE_NOTES_MAX) notes = it },
+                    label = { Text(stringResource(R.string.sanitary_calendar_reschedule_notes)) },
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                errorText?.let { Text(text = it, style = ActionMessageStyle) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(date, notes) }, enabled = !busy) {
+                Text(stringResource(R.string.sanitary_calendar_reschedule_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.common_cancel)) }
+        }
+    )
+
+    if (pickingDate) {
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+            selectableDates = object : SelectableDates {
+                // Solo hoy o fechas futuras: el backend rechaza reprogramar a una fecha vencida
+                override fun isSelectableDate(utcTimeMillis: Long) =
+                    !Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate().isBefore(today)
+
+                override fun isSelectableYear(year: Int) = year >= today.year
+            }
+        )
+        DatePickerDialog(
+            onDismissRequest = { pickingDate = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    pickerState.selectedDateMillis?.let { date = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
+                    pickingDate = false
+                }) { Text(stringResource(R.string.common_accept)) }
+            },
+            dismissButton = { TextButton(onClick = { pickingDate = false }) { Text(stringResource(R.string.common_cancel)) } }
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
+
+/** US47: mismo limite que valida el backend para la descripcion. */
+private const val RESCHEDULE_NOTES_MAX = 1000
 
 /** "mar", "mie"... en mayusculas y sin punto final. */
 private fun weekdayAbbreviation(date: LocalDate, locale: Locale): String =

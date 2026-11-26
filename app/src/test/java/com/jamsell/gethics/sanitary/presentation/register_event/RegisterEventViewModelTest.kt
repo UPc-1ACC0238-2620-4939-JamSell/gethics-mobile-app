@@ -1,5 +1,6 @@
 package com.jamsell.gethics.sanitary.presentation.register_event
 
+import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
 import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
@@ -118,6 +119,7 @@ class RegisterEventViewModelTest {
     }
 
     private class CountingService(val response: () -> Response<Unit> = { Response.success(201, Unit) }) : SanitaryService {
+        override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest) = error("no usado")
         override suspend fun getUpcomingEvents(days: Int) = error("no usado")
 
         var calls = 0

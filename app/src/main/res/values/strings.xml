@@ -117,6 +117,13 @@
     <string name="sanitary_calendar_cancel_event">Cancelar evento</string>
     <string name="sanitary_calendar_cancel_confirm">¿Deseas cancelar este evento?</string>
     <string name="sanitary_calendar_cancel_keep">No, mantener</string>
+    <!-- US47: reprogramar un evento programado -->
+    <string name="sanitary_calendar_reschedule_event">Reprogramar evento</string>
+    <string name="sanitary_calendar_reschedule_date">Nueva fecha</string>
+    <string name="sanitary_calendar_reschedule_notes">Notas (opcional)</string>
+    <string name="sanitary_calendar_reschedule_confirm">Reprogramar</string>
+    <string name="sanitary_calendar_reschedule_past_date">La nueva fecha no puede ser anterior a hoy.</string>
+    <string name="sanitary_calendar_reschedule_error">No se pudo reprogramar el evento</string>
     <string name="sanitary_saved_offline">Guardado sin conexión. Se sincronizará cuando vuelva la conexión.</string>
     <string name="sanitary_calendar_type_vaccination">Vacuna</string>
     <string name="sanitary_calendar_type_treatment">Tratamiento</string>

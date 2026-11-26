@@ -1,6 +1,7 @@
 package com.jamsell.gethics.sanitary.data.repository
 
 import com.google.gson.Gson
+import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.ClinicalHistoryEventDto
 import com.jamsell.gethics.sanitary.data.ClinicalHistoryResponse
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
@@ -41,6 +42,7 @@ class SanitaryRepositoryTest {
         val complete: (String, String, CompleteSanitaryEventRequest) -> Response<Unit> = { _, _, _ -> error("no usado") },
         val cancel: (String, String) -> Response<Unit> = { _, _ -> error("no usado") }
     ) : SanitaryService {
+        override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest) = error("no usado")
         override suspend fun getUpcomingEvents(days: Int) = error("no usado")
 
         override suspend fun cancelEvent(animalId: String, eventId: String) = cancel(animalId, eventId)
