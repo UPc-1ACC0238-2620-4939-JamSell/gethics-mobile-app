@@ -43,6 +43,7 @@ class SanitaryRepositoryTest {
         val cancel: (String, String) -> Response<Unit> = { _, _ -> error("no usado") }
     ) : SanitaryService {
         override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest) = error("no usado")
+        override suspend fun getUpcomingEvents(days: Int) = error("no usado")
 
         override suspend fun cancelEvent(animalId: String, eventId: String) = cancel(animalId, eventId)
         override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest) = register(request)

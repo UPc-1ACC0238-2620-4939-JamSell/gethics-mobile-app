@@ -30,6 +30,7 @@ import com.jamsell.gethics.iam.presentation.sign_in.SignInScreen
 import com.jamsell.gethics.iam.presentation.sign_in.SignInViewModel
 import com.jamsell.gethics.iam.presentation.sign_up.SignUpScreen
 import com.jamsell.gethics.iam.presentation.sign_up.SignUpViewModel
+import com.jamsell.gethics.livestock.domain.model.AnimalStatus
 import com.jamsell.gethics.livestock.presentation.animal_detail.AnimalDetailScreen
 import com.jamsell.gethics.livestock.presentation.animal_detail.AnimalDetailViewModel
 import com.jamsell.gethics.livestock.presentation.animal_edit.AnimalEditScreen
@@ -46,6 +47,8 @@ import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVa
 import com.jamsell.gethics.sanitary.presentation.schedule_vaccination.ScheduleVaccinationViewModel
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarScreen
 import com.jamsell.gethics.sanitary.presentation.sanitary_calendar.SanitaryCalendarViewModel
+import com.jamsell.gethics.sanitary.presentation.upcoming_events.UpcomingEventsScreen
+import com.jamsell.gethics.sanitary.presentation.upcoming_events.UpcomingEventsViewModel
 import com.jamsell.gethics.notifications.presentation.settings.SettingsScreen
 import com.jamsell.gethics.notifications.presentation.settings.NotificationSettingsViewModel
 import com.jamsell.gethics.shared.di.AppContainer
@@ -168,7 +171,20 @@ fun GethicsNavHost(
         composable(Routes.SANITARY_CALENDAR) {
             SanitaryCalendarScreen(
                 viewModel = gethicsViewModel { SanitaryCalendarViewModel(container.sanitaryRepository) },
-                onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onOpenUpcoming = { navController.navigate(Routes.UPCOMING_EVENTS) }
+            )
+        }
+        composable(Routes.UPCOMING_EVENTS) {
+            UpcomingEventsScreen(
+                viewModel = gethicsViewModel {
+                    UpcomingEventsViewModel(container.sanitaryRepository) {
+                        // US46: nombre (o arete) de cada animal activo para mostrar a quien corresponde cada evento
+                        (container.livestockRepository.getAnimals(null, AnimalStatus.ACTIVE).data ?: emptyList())
+                            .associate { it.id to it.name }
+                    }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
         composable(

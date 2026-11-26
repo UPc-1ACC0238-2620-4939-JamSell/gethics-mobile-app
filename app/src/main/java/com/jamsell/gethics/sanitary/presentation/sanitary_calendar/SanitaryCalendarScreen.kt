@@ -124,7 +124,9 @@ private fun typeLabel(type: SanitaryEventType): String = stringResource(
 fun SanitaryCalendarScreen(
     viewModel: SanitaryCalendarViewModel,
     // null = sin acceso a Ajustes (mismo boton que Finanzas/Reportes)
-    onOpenSettings: (() -> Unit)? = null
+    onOpenSettings: (() -> Unit)? = null,
+    // US46: abre las alertas de eventos proximos (null = sin acceso)
+    onOpenUpcoming: (() -> Unit)? = null
 ) {
     val state = viewModel.state.value
     val events = state.data
@@ -148,6 +150,16 @@ fun SanitaryCalendarScreen(
         Spacer(Modifier.height(20.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = stringResource(R.string.sanitary_calendar_title), modifier = Modifier.weight(1f), style = TitleStyle)
+            if (onOpenUpcoming != null) {
+                IconButton(onClick = onOpenUpcoming) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_bell),
+                        contentDescription = stringResource(R.string.upcoming_events_open),
+                        modifier = Modifier.size(20.dp),
+                        tint = TextPrimary
+                    )
+                }
+            }
             if (onOpenSettings != null) {
                 IconButton(onClick = onOpenSettings) {
                     Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_open))

@@ -8,6 +8,7 @@ import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
 import com.jamsell.gethics.sanitary.data.SanitaryService
+import com.jamsell.gethics.sanitary.data.UpcomingSanitaryEventsResponse
 import com.jamsell.gethics.sanitary.data.local.PendingSanitaryOperationDao
 import com.jamsell.gethics.sanitary.data.local.PendingSanitaryOperationEntity
 import com.jamsell.gethics.sanitary.data.local.toPending
@@ -112,6 +113,16 @@ class SanitaryRepository(
         try {
             val response = service.cancelEvent(animalId, eventId)
             if (response.isSuccessful) Resource.Success(Unit) else Resource.Error(response.errorMessage())
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    /** US46: alertas de eventos proximos (incluye los vencidos que siguen pendientes). */
+    suspend fun getUpcomingEvents(days: Int): Resource<UpcomingSanitaryEventsResponse> =
+        try {
+            val response = service.getUpcomingEvents(days)
+            val body = response.body()
+            if (response.isSuccessful && body != null) Resource.Success(body) else Resource.Error(response.errorMessage())
         } catch (e: IOException) {
             Resource.Error(CONNECTION_ERROR)
         }

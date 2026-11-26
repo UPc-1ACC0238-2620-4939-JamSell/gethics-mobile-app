@@ -47,6 +47,7 @@ class ScheduleVaccinationViewModelTest {
 
     private class FakeService(val response: () -> Response<Unit> = { Response.success(201, Unit) }) : SanitaryService {
         override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest) = error("no usado")
+        override suspend fun getUpcomingEvents(days: Int) = error("no usado")
 
         val requests = mutableListOf<Pair<String, ScheduleSanitaryEventRequest>>()
 

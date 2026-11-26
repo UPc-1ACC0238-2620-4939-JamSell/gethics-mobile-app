@@ -227,4 +227,21 @@
     <string name="animal_detail_status">Status</string>
     <string name="animal_detail_farm">Farm</string>
     <string name="animal_detail_no_farm">No farm assigned</string>
+    <!-- US46: upcoming sanitary event alerts -->
+    <string name="upcoming_events_title">Upcoming events</string>
+    <string name="upcoming_events_open">View upcoming events</string>
+    <string name="upcoming_events_back">Back</string>
+    <string name="upcoming_events_empty">No pending alerts.</string>
+    <string name="upcoming_events_load_error">Couldn\'t load the upcoming events</string>
+    <string name="upcoming_events_unknown_animal">Unidentified animal</string>
+    <string name="upcoming_events_badge_overdue">Overdue</string>
+    <string name="upcoming_events_badge_urgent">Urgent</string>
+    <string name="upcoming_events_badge_upcoming">Upcoming</string>
+    <string name="upcoming_events_due_today">Due today</string>
+    <string name="upcoming_events_due_tomorrow">Due tomorrow</string>
+    <string name="upcoming_events_due_in_days">Due in %1$d days</string>
+    <string name="upcoming_events_overdue_yesterday">Overdue since yesterday</string>
+    <string name="upcoming_events_overdue_days">Overdue by %1$d days</string>
+    <string name="upcoming_events_attention_one">1 event needs attention</string>
+    <string name="upcoming_events_attention_many">%1$d events need attention</string>
 </resources>
