@@ -118,6 +118,8 @@ class RegisterEventViewModelTest {
     }
 
     private class CountingService(val response: () -> Response<Unit> = { Response.success(201, Unit) }) : SanitaryService {
+        override suspend fun getUpcomingEvents(days: Int) = error("no usado")
+
         var calls = 0
         val requests = mutableListOf<RegisterSanitaryEventRequest>()
         override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest): Response<Unit> {

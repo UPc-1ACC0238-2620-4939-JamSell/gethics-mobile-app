@@ -45,6 +45,8 @@ class ScheduleVaccinationViewModelTest {
     private val clock = Clock.fixed(Instant.parse("2026-10-04T15:00:00Z"), ZoneId.of("America/Lima"))
 
     private class FakeService(val response: () -> Response<Unit> = { Response.success(201, Unit) }) : SanitaryService {
+        override suspend fun getUpcomingEvents(days: Int) = error("no usado")
+
         val requests = mutableListOf<Pair<String, ScheduleSanitaryEventRequest>>()
 
         override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest): Response<Unit> {

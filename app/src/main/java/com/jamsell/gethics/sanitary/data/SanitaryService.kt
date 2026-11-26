@@ -50,6 +50,10 @@ interface SanitaryService {
         @Path("eventId") eventId: String
     ): Response<Unit>
 
+    /** US46. Eventos SCHEDULED que vencen en los proximos days dias (1 a 30), mas los ya vencidos. 400 fuera de rango. */
+    @GET("api/v1/sanitary-events/upcoming")
+    suspend fun getUpcomingEvents(@Query("days") days: Int): Response<UpcomingSanitaryEventsResponse>
+
     /** US14. Historial completo del animal; un UUID sin eventos (o inexistente) responde 200 con "Sin registros.". */
     @GET("api/v1/animals/{animalId}/clinical-history")
     suspend fun getClinicalHistory(@Path("animalId") animalId: String): Response<ClinicalHistoryResponse>

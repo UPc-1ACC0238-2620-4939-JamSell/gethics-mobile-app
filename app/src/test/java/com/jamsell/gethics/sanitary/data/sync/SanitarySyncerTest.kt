@@ -33,6 +33,8 @@ class SanitarySyncerTest {
 
     /** Responde segun el clientRequestId enviado y registra cada envio en orden. */
     private class FakeService(val respond: (String) -> Response<Unit> = { Response.success(201, Unit) }) : SanitaryService {
+        override suspend fun getUpcomingEvents(days: Int) = error("no usado")
+
         val sent = mutableListOf<Any>()
 
         override suspend fun registerEvent(animalId: String, request: RegisterSanitaryEventRequest): Response<Unit> {
