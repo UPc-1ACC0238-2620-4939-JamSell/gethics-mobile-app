@@ -1,6 +1,7 @@
 package com.jamsell.gethics.sanitary.presentation.sanitary_calendar
 
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
 import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
@@ -54,11 +55,18 @@ class SanitaryCalendarViewModelTest {
         val delayMs: (YearMonth) -> Long = { 0 },
         val completeResponse: () -> Response<Unit> = { Response.success(Unit) },
         val cancelResponse: () -> Response<Unit> = { Response.success(Unit) },
+        val rescheduleResponse: suspend () -> Response<Unit> = { Response.success(Unit) },
         val events: (YearMonth) -> List<ScheduledEventDto>
     ) : SanitaryService {
         val requested = mutableListOf<YearMonth>()
         val completed = mutableListOf<Triple<String, String, CompleteSanitaryEventRequest>>()
         val cancelled = mutableListOf<Pair<String, String>>()
+        val rescheduled = mutableListOf<Triple<String, String, RescheduleSanitaryEventRequest>>()
+
+        override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest): Response<Unit> {
+            rescheduled += Triple(animalId, eventId, request)
+            return rescheduleResponse()
+        }
 
         override suspend fun cancelEvent(animalId: String, eventId: String): Response<Unit> {
             cancelled += animalId to eventId
@@ -258,5 +266,104 @@ class SanitaryCalendarViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, service.cancelled.size)
+    }
+
+    // ---------------- US47: reprogramar ----------------
+
+    private val pending = ScheduledEventDto("evento-uuid", "animal-uuid", SanitaryEventType.CHECKUP, "2026-10-07", "Control", "SCHEDULED")
+
+    @Test
+    fun `reprogramar envia la nueva fecha y notas, cierra el dialogo y recarga el mes`() = runTest(dispatcher) {
+        val service = FakeService { listOf(pending) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+        var closed = false
+
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 20), "  Control de peso ") { closed = true }
+        assertTrue(viewModel.rescheduling.value)
+        advanceUntilIdle()
+
+        val (animalId, eventId, request) = service.rescheduled.single()
+        assertEquals("animal-uuid", animalId)
+        assertEquals("evento-uuid", eventId)
+        assertEquals(RescheduleSanitaryEventRequest("2026-10-20", "Control de peso"), request)
+        assertTrue(closed)
+        assertFalse(viewModel.rescheduling.value)
+        assertEquals(null, viewModel.rescheduleError.value)
+        assertEquals(2, service.requested.size) // carga inicial + recarga tras reprogramar
+    }
+
+    @Test
+    fun `notas vacias se envian como null para conservar las actuales`() = runTest(dispatcher) {
+        val service = FakeService { listOf(pending) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 4), "   ") {}
+        advanceUntilIdle()
+
+        assertEquals(RescheduleSanitaryEventRequest("2026-10-04", null), service.rescheduled.single().third)
+    }
+
+    @Test
+    fun `una fecha anterior a hoy no llama al backend y deja el error en el dialogo`() = runTest(dispatcher) {
+        val service = FakeService { listOf(pending) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+        var closed = false
+
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 3), "x") { closed = true }
+        advanceUntilIdle()
+
+        assertTrue(service.rescheduled.isEmpty())
+        assertEquals(RescheduleError.PastDate, viewModel.rescheduleError.value)
+        assertFalse(closed)
+    }
+
+    @Test
+    fun `error del backend mantiene el dialogo abierto con su mensaje y no recarga`() = runTest(dispatcher) {
+        val body = """{"message":"Solo un evento programado (SCHEDULED) puede reprogramarse."}""".toResponseBody("application/json".toMediaType())
+        val service = FakeService(rescheduleResponse = { Response.error(409, body) }) { listOf(pending) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+        var closed = false
+
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 20), "") { closed = true }
+        advanceUntilIdle()
+
+        assertEquals(RescheduleError.Server("Solo un evento programado (SCHEDULED) puede reprogramarse."), viewModel.rescheduleError.value)
+        assertFalse(closed)
+        assertFalse(viewModel.rescheduling.value)
+        assertEquals(1, service.requested.size)
+    }
+
+    @Test
+    fun `sin conexion muestra el error de conexion`() = runTest(dispatcher) {
+        val service = FakeService(rescheduleResponse = { throw java.io.IOException("sin red") }) { listOf(pending) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 20), "") {}
+        advanceUntilIdle()
+
+        assertEquals(RescheduleError.Server(com.jamsell.gethics.sanitary.data.repository.CONNECTION_ERROR), viewModel.rescheduleError.value)
+    }
+
+    @Test
+    fun `mientras reprograma ignora un segundo toque y clearRescheduleError limpia el error`() = runTest(dispatcher) {
+        val service = FakeService(rescheduleResponse = { delay(1_000); Response.success(Unit) }) { listOf(pending) }
+        val viewModel = SanitaryCalendarViewModel(SanitaryRepository(service), clockAt("2026-10-04T15:00:00Z"))
+        advanceUntilIdle()
+
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 20), "") {}
+        runCurrent()
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 21), "") {}
+        advanceUntilIdle()
+        assertEquals(1, service.rescheduled.size)
+
+        viewModel.rescheduleEvent(pending, LocalDate.of(2026, 10, 1), "") {}
+        assertEquals(RescheduleError.PastDate, viewModel.rescheduleError.value)
+        viewModel.clearRescheduleError()
+        assertEquals(null, viewModel.rescheduleError.value)
     }
 }
