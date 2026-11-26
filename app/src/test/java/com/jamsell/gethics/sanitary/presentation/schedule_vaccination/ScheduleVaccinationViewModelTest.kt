@@ -1,5 +1,6 @@
 package com.jamsell.gethics.sanitary.presentation.schedule_vaccination
 
+import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
@@ -45,6 +46,8 @@ class ScheduleVaccinationViewModelTest {
     private val clock = Clock.fixed(Instant.parse("2026-10-04T15:00:00Z"), ZoneId.of("America/Lima"))
 
     private class FakeService(val response: () -> Response<Unit> = { Response.success(201, Unit) }) : SanitaryService {
+        override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest) = error("no usado")
+
         val requests = mutableListOf<Pair<String, ScheduleSanitaryEventRequest>>()
 
         override suspend fun scheduleEvent(animalId: String, request: ScheduleSanitaryEventRequest): Response<Unit> {

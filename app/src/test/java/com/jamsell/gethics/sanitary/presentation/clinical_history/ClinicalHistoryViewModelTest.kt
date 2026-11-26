@@ -1,5 +1,6 @@
 package com.jamsell.gethics.sanitary.presentation.clinical_history
 
+import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.ClinicalHistoryEventDto
 import com.jamsell.gethics.sanitary.data.ClinicalHistoryResponse
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
@@ -49,6 +50,8 @@ class ClinicalHistoryViewModelTest {
 
     /** Responde con la lista de respuestas en orden (la ultima se repite) y registra los animalId pedidos. */
     private class FakeService(vararg responses: Response<ClinicalHistoryResponse>) : SanitaryService {
+        override suspend fun rescheduleEvent(animalId: String, eventId: String, request: RescheduleSanitaryEventRequest) = error("no usado")
+
         private val queue = responses.toMutableList()
         val requested = mutableListOf<String>()
 

@@ -4,6 +4,7 @@ import com.jamsell.gethics.sanitary.data.ClinicalHistoryResponse
 import com.jamsell.gethics.sanitary.data.CompleteSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.ScheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.RegisterSanitaryEventRequest
+import com.jamsell.gethics.sanitary.data.RescheduleSanitaryEventRequest
 import com.jamsell.gethics.sanitary.data.SanitaryCalendarResponse
 import com.jamsell.gethics.sanitary.data.SanitaryEventType
 import com.jamsell.gethics.sanitary.data.SanitaryService
@@ -92,6 +93,15 @@ class SanitaryRepository(
     suspend fun completeEvent(animalId: String, eventId: String, request: CompleteSanitaryEventRequest): Resource<Unit> =
         try {
             val response = service.completeEvent(animalId, eventId, request)
+            if (response.isSuccessful) Resource.Success(Unit) else Resource.Error(response.errorMessage())
+        } catch (e: IOException) {
+            Resource.Error(CONNECTION_ERROR)
+        }
+
+    /** US47: reprograma un evento programado. El backend es la fuente de verdad: la pantalla recarga el calendario. */
+    suspend fun rescheduleEvent(animalId: String, eventId: String, scheduledDate: String, description: String?): Resource<Unit> =
+        try {
+            val response = service.rescheduleEvent(animalId, eventId, RescheduleSanitaryEventRequest(scheduledDate, description))
             if (response.isSuccessful) Resource.Success(Unit) else Resource.Error(response.errorMessage())
         } catch (e: IOException) {
             Resource.Error(CONNECTION_ERROR)

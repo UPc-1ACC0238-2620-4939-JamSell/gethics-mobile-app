@@ -38,6 +38,14 @@ interface SanitaryService {
         @Body request: CompleteSanitaryEventRequest
     ): Response<Unit>
 
+    /** US47. Cambia la fecha (y opcionalmente las notas) del mismo evento SCHEDULED. 200; 400 fecha pasada; 404; 409 si no esta SCHEDULED. */
+    @POST("api/v1/animals/{animalId}/sanitary-events/{eventId}/reschedule")
+    suspend fun rescheduleEvent(
+        @Path("animalId") animalId: String,
+        @Path("eventId") eventId: String,
+        @Body request: RescheduleSanitaryEventRequest
+    ): Response<Unit>
+
     /**
      * US33. Cancela un evento sanitario programado.
      * El backend responde con el evento actualizado, pero Mobile no necesita consumir
