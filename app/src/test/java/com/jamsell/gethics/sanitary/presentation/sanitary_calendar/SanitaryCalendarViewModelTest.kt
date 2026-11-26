@@ -56,6 +56,8 @@ class SanitaryCalendarViewModelTest {
         val cancelResponse: () -> Response<Unit> = { Response.success(Unit) },
         val events: (YearMonth) -> List<ScheduledEventDto>
     ) : SanitaryService {
+        override suspend fun getUpcomingEvents(days: Int) = error("no usado")
+
         val requested = mutableListOf<YearMonth>()
         val completed = mutableListOf<Triple<String, String, CompleteSanitaryEventRequest>>()
         val cancelled = mutableListOf<Pair<String, String>>()

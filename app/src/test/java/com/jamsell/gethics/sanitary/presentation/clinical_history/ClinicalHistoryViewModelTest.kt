@@ -49,6 +49,8 @@ class ClinicalHistoryViewModelTest {
 
     /** Responde con la lista de respuestas en orden (la ultima se repite) y registra los animalId pedidos. */
     private class FakeService(vararg responses: Response<ClinicalHistoryResponse>) : SanitaryService {
+        override suspend fun getUpcomingEvents(days: Int) = error("no usado")
+
         private val queue = responses.toMutableList()
         val requested = mutableListOf<String>()
 
