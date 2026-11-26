@@ -44,6 +44,14 @@ class SanitaryCalendarViewModel(
     private val _cancelling = mutableStateOf(false)
     val cancelling: State<Boolean> get() = _cancelling
 
+    // US47: reprogramar un evento programado (true mientras la peticion esta en curso)
+    private val _rescheduling = mutableStateOf(false)
+    val rescheduling: State<Boolean> get() = _rescheduling
+
+    // US47: error a mostrar DENTRO del dialogo de reprogramacion (null = sin error); el dialogo no se cierra
+    private val _rescheduleError = mutableStateOf<RescheduleError?>(null)
+    val rescheduleError: State<RescheduleError?> get() = _rescheduleError
+
     init {
         load()
     }
@@ -98,6 +106,37 @@ class SanitaryCalendarViewModel(
         }
     }
 
+    fun clearRescheduleError() {
+        _rescheduleError.value = null
+    }
+
+    /**
+     * US47: cambia la fecha (y, si se escriben, las notas) de un evento programado. Solo si el backend lo acepta se llama
+     * onDone (la pantalla cierra el dialogo) y se recarga el mes; si falla, el error queda en rescheduleError y el dialogo
+     * sigue abierto con lo que el usuario ingreso. Una sola reprogramacion a la vez.
+     */
+    fun rescheduleEvent(event: ScheduledEventDto, newDate: LocalDate, notes: String, onDone: () -> Unit) {
+        if (_rescheduling.value) return
+        if (newDate.isBefore(LocalDate.now(clock))) {
+            _rescheduleError.value = RescheduleError.PastDate
+            return
+        }
+        _rescheduleError.value = null
+        _rescheduling.value = true
+        viewModelScope.launch {
+            val description = notes.trim().takeIf { it.isNotEmpty() }
+            val result = repository.rescheduleEvent(event.animalId, event.id, newDate.toString(), description)
+            _rescheduling.value = false
+            when (result) {
+                is Resource.Success -> {
+                    onDone()
+                    load()
+                }
+                is Resource.Error -> _rescheduleError.value = RescheduleError.Server(result.message.orEmpty())
+            }
+        }
+    }
+
     /**
      * US33: cancela un evento programado y recarga el mes. Sin estados locales: si el backend deja de devolverlo como
      * SCHEDULED, desaparece del calendario. Una sola cancelacion a la vez (ignora toques repetidos).
@@ -115,4 +154,10 @@ class SanitaryCalendarViewModel(
             }
         }
     }
+}
+
+/** US47: PastDate se traduce en la pantalla; Server trae el message del backend (o vacio para el texto generico). */
+sealed interface RescheduleError {
+    data object PastDate : RescheduleError
+    data class Server(val message: String) : RescheduleError
 }
