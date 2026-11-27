@@ -7,8 +7,9 @@ import com.jamsell.gethics.iot.data.ReadingsPageResponse
 import com.jamsell.gethics.shared.common.Resource
 import com.jamsell.gethics.shared.data.remote.errorMessage
 import java.io.IOException
+import java.time.LocalDate
 
-private const val CONNECTION_ERROR = "No se pudo conectar con el servidor"
+internal const val CONNECTION_ERROR = "No se pudo conectar con el servidor"
 
 class IotRepository(private val service: IotService) {
 
@@ -30,10 +31,16 @@ class IotRepository(private val service: IotService) {
             Resource.Error(CONNECTION_ERROR)
         }
 
-    /** US37. Una pagina de lecturas del dispositivo. */
-    suspend fun getReadings(deviceId: String, page: Int, size: Int): Resource<ReadingsPageResponse> =
+    /** US37 + US48. Una pagina de lecturas; from/to son dias inclusivos opcionales (se envian como yyyy-MM-dd). */
+    suspend fun getReadings(
+        deviceId: String,
+        page: Int,
+        size: Int,
+        from: LocalDate? = null,
+        to: LocalDate? = null
+    ): Resource<ReadingsPageResponse> =
         try {
-            val response = service.getReadings(deviceId, page, size)
+            val response = service.getReadings(deviceId, page, size, from?.toString(), to?.toString())
             val body = response.body()
             if (response.isSuccessful && body != null) Resource.Success(body) else Resource.Error(response.errorMessage())
         } catch (e: IOException) {

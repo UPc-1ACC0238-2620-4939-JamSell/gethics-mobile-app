@@ -152,6 +152,24 @@
     <string name="iot_readings_title_with_code">Lecturas · %1$s</string>
     <string name="iot_readings_empty">Este dispositivo aún no ha reportado lecturas.</string>
     <string name="iot_readings_loading_more">Cargando más lecturas…</string>
+    <string name="iot_readings_device">Dispositivo: %1$s</string>
+    <string name="iot_readings_loading">Cargando lecturas…</string>
+    <string name="iot_readings_progress">Mostrando %1$d de %2$d lecturas</string>
+    <string name="iot_readings_retry">Reintentar</string>
+    <string name="iot_readings_error_connection">Error de conexión. Revisa tu internet e inténtalo de nuevo.</string>
+    <string name="iot_readings_empty_filtered">No hay lecturas disponibles en el rango seleccionado.</string>
+    <string name="iot_readings_device_unavailable">El dispositivo no está disponible. Vuelve a Dispositivos IoT y elige uno.</string>
+    <string name="iot_filter_from">Fecha inicial</string>
+    <string name="iot_filter_to">Fecha final</string>
+    <string name="iot_filter_not_set">Sin definir</string>
+    <string name="iot_filter_clear_date">Quitar %1$s</string>
+    <string name="iot_filter_apply">Aplicar filtros</string>
+    <string name="iot_filter_clear">Limpiar filtros</string>
+    <string name="iot_filter_invalid_range">Rango inválido: la fecha inicial no puede ser posterior a la final.</string>
+    <string name="iot_filter_active">Filtros activos: %1$s</string>
+    <string name="iot_filter_range_both">%1$s – %2$s</string>
+    <string name="iot_filter_range_from">desde %1$s</string>
+    <string name="iot_filter_range_to">hasta %1$s</string>
 
     <!-- Animales: ficha, edición, registro y baja (US05-US08) -->
     <string name="animal_back">Volver</string>
