@@ -18,13 +18,17 @@ interface IotService {
     suspend fun getDevices(@Query("ownerId") ownerId: String): Response<List<DeviceResponse>>
 
     /**
-     * US37. Lecturas del dispositivo (id = UUID), paginadas y de la mas reciente a la mas antigua.
-     * size va de 1 a 100 (400 si se pasa); 404 si el dispositivo no existe; sin lecturas devuelve 200 con content vacio.
+     * US37 + US48. Lecturas del dispositivo (id = UUID), paginadas y de la mas reciente a la mas antigua.
+     * from/to (yyyy-MM-dd, dias inclusivos y opcionales; null = no se envian) filtran por el dia de recordedAt.
+     * size va de 1 a 100; 400 si size/page/fechas son invalidos o from es posterior a to; 404 si el dispositivo no existe;
+     * sin lecturas devuelve 200 con content vacio.
      */
     @GET("api/v1/devices/{id}/readings")
     suspend fun getReadings(
         @Path("id") deviceId: String,
         @Query("page") page: Int,
-        @Query("size") size: Int
+        @Query("size") size: Int,
+        @Query("from") from: String?,
+        @Query("to") to: String?
     ): Response<ReadingsPageResponse>
 }
