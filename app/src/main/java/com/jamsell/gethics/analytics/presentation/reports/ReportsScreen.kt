@@ -1,11 +1,13 @@
 package com.jamsell.gethics.analytics.presentation.reports
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -15,11 +17,13 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -33,18 +37,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
 import com.jamsell.gethics.R
+import com.jamsell.gethics.analytics.data.ExportedReport
 import com.jamsell.gethics.analytics.data.LivestockReportResponse
 import com.jamsell.gethics.analytics.data.ReportSectionResponse
+import com.jamsell.gethics.finance.data.FinancialTransactionType
 import com.jamsell.gethics.finance.presentation.finance_summary.formatMoney
 import com.jamsell.gethics.sanitary.presentation.register_event.FormDateField
 import com.jamsell.gethics.sanitary.presentation.register_event.FormHorizontalPadding
 import com.jamsell.gethics.sanitary.presentation.register_event.FormLabel
 import com.jamsell.gethics.sanitary.presentation.register_event.FormMessage
 import com.jamsell.gethics.sanitary.presentation.register_event.FormPrimaryButton
+import com.jamsell.gethics.sanitary.presentation.register_event.FormTextField
 import com.jamsell.gethics.shared.ui.components.GethicsCard
 import java.time.Instant
 import java.time.ZoneOffset
@@ -59,7 +68,12 @@ private const val PICK_TO = 2
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit, onOpenDevices: () -> Unit = {}) {
+fun ReportsScreen(
+    viewModel: ReportsViewModel,
+    onOpenSettings: () -> Unit,
+    onOpenDevices: () -> Unit = {},
+    shareFile: (Context, ExportedReport, String) -> Unit = ::shareReport
+) {
     val state = viewModel.state.value
     val from = viewModel.from.value
     val to = viewModel.to.value
@@ -71,17 +85,18 @@ fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit, onOpe
     // US39: cuando el CSV esta listo se abre el selector para compartirlo o guardarlo.
     LaunchedEffect(exportUi.data) {
         exportUi.data?.let {
-            shareReport(context, it, shareTitle)
+            shareFile(context, it, shareTitle)
             viewModel.consumeExport()
         }
     }
 
-    // Genera el reporte del mes actual al abrir la pantalla.
-    LaunchedEffect(Unit) { viewModel.generate() }
+    // Genera el reporte del mes actual la primera vez; al volver a la pantalla se conserva el reporte y los filtros aplicados.
+    LaunchedEffect(Unit) { if (viewModel.appliedFilters.value == null) viewModel.applyFilters() }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = FormHorizontalPadding)
             .padding(top = 12.dp, bottom = 24.dp)
@@ -112,30 +127,67 @@ fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit, onOpe
 
         if (viewModel.rangeError.value) FormMessage(stringResource(R.string.reports_error_range))
 
+        // US49: tipo de movimiento y categoria (borrador: no cambian el reporte hasta Aplicar filtros)
+        Spacer(Modifier.height(16.dp))
+        FormLabel(stringResource(R.string.tx_type))
+        Spacer(Modifier.height(8.dp))
+        Row {
+            TypeChip(null, viewModel.type.value, viewModel::onTypeChange)
+            Spacer(Modifier.width(8.dp))
+            TypeChip(FinancialTransactionType.INCOME, viewModel.type.value, viewModel::onTypeChange)
+            Spacer(Modifier.width(8.dp))
+            TypeChip(FinancialTransactionType.EXPENSE, viewModel.type.value, viewModel::onTypeChange)
+        }
+
+        Spacer(Modifier.height(16.dp))
+        FormLabel(stringResource(R.string.tx_category))
+        Spacer(Modifier.height(8.dp))
+        FormTextField(value = viewModel.category.value, onValueChange = viewModel::onCategoryChange)
+
         Spacer(Modifier.height(16.dp))
         FormPrimaryButton(
-            text = stringResource(R.string.reports_generate),
-            onClick = viewModel::generate,
+            text = stringResource(R.string.reports_apply_filters),
+            onClick = viewModel::applyFilters,
             isLoading = state.isLoading
         )
 
         Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = viewModel::clearFilters, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.reports_clear_filters))
+        }
+
+        // US49: resumen de los filtros que realmente estan aplicados al reporte visible (y a la exportacion)
+        val applied = viewModel.appliedFilters.value
+        if (applied != null && applied.hasActiveFilters) {
+            Spacer(Modifier.height(12.dp))
+            ActiveFiltersChip(applied)
+        }
+
+        Spacer(Modifier.height(12.dp))
         OutlinedButton(
             onClick = viewModel::exportReport,
-            enabled = !exportUi.isLoading,
+            enabled = !exportUi.isLoading && applied != null,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 stringResource(if (exportUi.isLoading) R.string.reports_exporting else R.string.reports_export)
             )
         }
-        // Escenario 2 de US39: sin informacion en el periodo, el aviso del servidor se muestra tal cual
+        // Escenario 2 de US39: sin informacion con esos filtros, el aviso del servidor se muestra tal cual
         if (exportUi.message.isNotEmpty()) FormMessage(exportUi.message)
+        viewModel.exportedFileName.value?.let {
+            Text(
+                text = stringResource(R.string.reports_exported, it),
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
         val report = state.data
         if (report != null) {
             Spacer(Modifier.height(20.dp))
-            ReportContent(report)
+            ReportContent(report, filtered = applied?.hasActiveFilters == true)
         } else if (state.message.isNotEmpty()) {
             FormMessage(state.message)
         }
@@ -167,7 +219,7 @@ fun ReportsScreen(viewModel: ReportsViewModel, onOpenSettings: () -> Unit, onOpe
 }
 
 @Composable
-private fun ReportContent(report: LivestockReportResponse) {
+private fun ReportContent(report: LivestockReportResponse, filtered: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         GethicsCard {
             Text(
@@ -185,6 +237,7 @@ private fun ReportContent(report: LivestockReportResponse) {
             )
             if (report.finance.limitedData) {
                 LimitedNote(report.finance.message)
+                if (filtered) NoResultsNote()
             }
         }
         SectionCard(stringResource(R.string.reports_health), report.health)
@@ -229,3 +282,60 @@ private fun LimitedNote(message: String?) {
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 }
+
+/** US49. Una opcion del selector de tipo: null = Todos (no se envia type al backend). */
+@Composable
+private fun TypeChip(
+    option: FinancialTransactionType?,
+    selected: FinancialTransactionType?,
+    onSelect: (FinancialTransactionType?) -> Unit
+) {
+    FilterChip(
+        modifier = Modifier.testTag(typeChipTag(option)),
+        selected = option == selected,
+        onClick = { onSelect(option) },
+        label = { Text(typeLabel(option)) }
+    )
+}
+
+@Composable
+private fun typeLabel(type: FinancialTransactionType?): String = stringResource(
+    when (type) {
+        null -> R.string.reports_filter_all
+        FinancialTransactionType.INCOME -> R.string.finance_income
+        FinancialTransactionType.EXPENSE -> R.string.finance_expense
+    }
+)
+
+/** US49. "Filtros activos: Gastos · Alimento", con lo que realmente esta aplicado (no con el borrador). */
+@Composable
+private fun ActiveFiltersChip(applied: ReportFilters) {
+    val summary = listOfNotNull(applied.type?.let { typeLabel(it) }, applied.category).joinToString(" · ")
+    Surface(
+        modifier = Modifier.testTag(ACTIVE_FILTERS_TAG),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Text(
+            text = stringResource(R.string.reports_filters_active, summary),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
+
+@Composable
+private fun NoResultsNote() {
+    Text(
+        text = stringResource(R.string.reports_no_results_filtered),
+        modifier = Modifier.padding(top = 8.dp),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+internal const val ACTIVE_FILTERS_TAG = "reports_active_filters"
+
+/** Etiqueta de prueba del chip de tipo: reports_type_ALL | reports_type_INCOME | reports_type_EXPENSE. */
+internal fun typeChipTag(type: FinancialTransactionType?) = "reports_type_${type?.name ?: "ALL"}"
