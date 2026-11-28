@@ -22,7 +22,10 @@ data class LivestockReportResponse(
     val to: String,
     val finance: FinanceReportSectionResponse,
     val health: ReportSectionResponse,
-    val productivity: ReportSectionResponse
+    val productivity: ReportSectionResponse,
+    /** US49. Filtros que el backend aplico (INCOME / EXPENSE y categoria); ausentes si no se filtro. */
+    val type: String? = null,
+    val category: String? = null
 )
 
 /** US39. Archivo CSV descargado del backend, listo para guardarse y compartirse. */
@@ -41,3 +44,6 @@ fun exportFileName(contentDisposition: String?, from: String, to: String): Strin
     val clean = raw.replace(Regex("[\\\\/]"), "_")
     return clean.takeIf { it.isNotBlank() && !it.startsWith(".") } ?: fallback
 }
+
+/** US49. Categoria opcional del filtro: vacia o solo espacios = sin filtro. No se cambian mayusculas ni minusculas. */
+fun normalizeCategory(raw: String?): String? = raw?.trim()?.takeIf { it.isNotEmpty() }

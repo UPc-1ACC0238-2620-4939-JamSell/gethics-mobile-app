@@ -41,7 +41,12 @@
     <string name="reports_title">Reportes</string>
     <string name="reports_from">Desde</string>
     <string name="reports_to">Hasta</string>
-    <string name="reports_generate">Generar reporte</string>
+    <string name="reports_apply_filters">Aplicar filtros</string>
+    <string name="reports_clear_filters">Limpiar filtros</string>
+    <string name="reports_filter_all">Todos</string>
+    <string name="reports_filters_active">Filtros activos: %1$s</string>
+    <string name="reports_no_results_filtered">No hay movimientos que cumplan estos filtros en el periodo.</string>
+    <string name="reports_exported">Reporte exportado: %1$s</string>
     <string name="reports_finance">Finanzas</string>
     <string name="reports_health">Salud del hato</string>
     <string name="reports_productivity">Productividad</string>
